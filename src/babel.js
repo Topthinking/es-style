@@ -3,8 +3,11 @@ import sass from 'node-sass'
 import path from 'path'
 import requireResolve from 'require-resolve'
 import { loopWhile } from 'deasync'
+import _hashString from 'string-hash'
 
 import { STYLE_COMPONENT } from './constants'
+
+const hashString = str => String(_hashString(str))
 
 export default ({ types: t }) => {
 	return {
@@ -16,7 +19,7 @@ export default ({ types: t }) => {
 
 				const importDeclaration = t.importDeclaration(
 					[t.importDefaultSpecifier(t.identifier(STYLE_COMPONENT))],
-					t.stringLiteral('styled-jsx/style')
+					t.stringLiteral('es-style')
 				)
 
 				path.node.body.unshift(importDeclaration)
@@ -78,7 +81,11 @@ export default ({ types: t }) => {
 						t.jSXAttribute(
 							t.jSXIdentifier('css'),
 							t.jSXExpressionContainer(t.stringLiteral(css))
-						)
+						),
+						t.jSXAttribute(
+							t.jSXIdentifier('styleId'),
+							t.jSXExpressionContainer(t.stringLiteral(hashString(css)))
+						),
 					]
 					path.node.children.push(
 						t.jSXElement(
@@ -184,6 +191,8 @@ const postcssHandle = (plugins, state) => {
 			}
 		})
 	}
+
+	_plugins.push(require('postcss-combine-duplicated-selectors')({removeDuplicatedProperties: true}))
 
 	return new Promise((resolve, reject) => {
 		postcss(_plugins)
