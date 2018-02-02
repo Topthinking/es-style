@@ -22,7 +22,7 @@
   "scripts": {
     "dev": "taskr",
     "build": "taskr release && node publish.js && cd publish && npm publish",
-    "test_project": "cd test/project && npm run dev"
+    "test_project": "cd test/spa && npm run dev"
   },
   "repository": {
     "type": "git",
