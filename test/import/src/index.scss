@@ -1,0 +1,13 @@
+//@import "styles/mixin.scss";
+
+.name{
+	color:hotpink;
+	&:hover{
+		color:black;
+	}
+}
+
+.yoyoyo{
+	display: flex;
+	font-size: 14px;
+}

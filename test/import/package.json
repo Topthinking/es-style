@@ -1,0 +1,14 @@
+{
+  "name": "project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "clean.js",
+  "scripts": {
+    "dev": "node clean.js && webpack && node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "es-style": "latest"
+  }
+}
