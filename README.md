@@ -14,6 +14,17 @@
 
   `spa`项目是用来开发`es-style`时使用的demo演示
 
+## 安装
+
+```shell
+npm install es-style --save
+```
+
+or
+
+```shell
+yarn add es-style
+```
 
 ## babel 配置
 ```json
