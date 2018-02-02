@@ -1,0 +1,1 @@
+export const STYLE_COMPONENT = '_JSXStyle'
