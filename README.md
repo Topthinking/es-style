@@ -1,4 +1,4 @@
-# es-style
+# es-style &middot; [![NPM version](https://img.shields.io/npm/v/es-style.svg)](https://www.npmjs.com/package/es-style)
 
 在项目的组件中直接引用`scss`文件，之后插件会自动做样式的处理
 

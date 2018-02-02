@@ -19,7 +19,7 @@ const main = async () => {
 
 	await copy('./babel.js', './publish')
 	await copy('./server.js', './publish')
-	await copy('./style.js', './publish')
+	await copy('./index.js', './publish')
 
 	await copy('./README.md', './publish')
 	await copy('./License', './publish')
