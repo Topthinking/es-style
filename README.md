@@ -66,8 +66,10 @@ yarn add es-style
 
 ## 感谢
 
-`babel-plugin-inline-import` 实现加载方式
+`babel-plugin-inline-import` ✂️ 实现加载方式
 
 `styled-jsx` 👍 `es-style/server` === `styled-jsx/server`  🌍 [文档地址](https://github.com/zeit/styled-jsx)
 
-`styled-jsx-postcss`  es-style的插件 === postcss的插件
+`styled-jsx-postcss` 🔌 es-style的插件 === postcss的插件
+
+`deasync` 🛠 阻塞nodejs同步线程
