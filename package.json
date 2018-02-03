@@ -1,6 +1,6 @@
 {
   "name": "es-style",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "license": "MIT",
   "description": "easy stylesheet style",
   "files": [
@@ -22,7 +22,7 @@
   "scripts": {
     "dev": "taskr",
     "build": "taskr release && node publish.js && cd publish && npm publish",
-    "test_project": "cd test/spa && npm run dev"
+    "test_spa": "cd test/spa && npm run dev"    
   },
   "repository": {
     "type": "git",
