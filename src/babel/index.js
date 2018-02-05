@@ -1,6 +1,7 @@
 import { loopWhile } from 'deasync'
 import { content, parse } from './parse-style'
-import { isObject, shouldBeParse, hashString } from '../utils'
+import { isObject, shouldBeParseStyle, shouldBeParseImage, hashString } from '../utils'
+import parseImage from "../utils/parse-image"
 
 import { 
 	STYLE_COMPONENT,
@@ -31,6 +32,7 @@ export default ({ types: t }) => {
 				let reference = state && state.file && state.file.opts.filename
 				let extensions = state && state.opts && state.opts.extensions
 				let sassOptions = state && state.opts && state.opts.sassOptions
+				let imageOptions = state && state.opts && state.opts.imageOptions
 
 				if (typeof state.styles === 'undefined') {
 					state.styles = []
@@ -44,10 +46,9 @@ export default ({ types: t }) => {
 					givenPath = givenPath.replace(/!$/,'')
 				}
 
-				if (shouldBeParse(givenPath, extensions)) {
-					if (path.node.specifiers.length > 1) {
-						throw new Error(`Destructuring inlined import is not allowed. Check the import statement for '${givenPath}'`);
-					}
+				//引用样式
+				if (shouldBeParseStyle(givenPath, extensions)) {
+					path.node.specifiers = []
 
 					if (!isObject(sassOptions)) { 
 						sassOptions = {}
@@ -56,6 +57,27 @@ export default ({ types: t }) => {
 					const css = content(givenPath, reference, sassOptions)
 					state.styles.push(css)
 					path.remove()
+				}
+
+				//引用图片
+				if (shouldBeParseImage(givenPath, extensions)) { 
+					if (path.node.specifiers.length === 1 && t.isImportDefaultSpecifier(path.node.specifiers[0])) { 
+						const id = path.node.specifiers[0].local.name
+						const content = parseImage(givenPath, reference, imageOptions)
+						const variable = t.variableDeclarator(t.identifier(id), t.stringLiteral(content))
+						
+						path.replaceWith({
+							type: 'VariableDeclaration',
+							kind: 'const',
+							declarations: [variable],
+							leadingComments: [
+								{
+									type: 'CommentBlock',
+									value: `es-style '${givenPath}' `
+								}
+							]
+						})
+					}
 				}
 			},			
 			//生成jsx的style对象，同时这里会转译样式资源

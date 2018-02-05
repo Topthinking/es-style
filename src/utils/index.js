@@ -8,11 +8,29 @@ export const isObject = (obj) => {
 }
 
 //判断是否import引入了需要解析的后缀
-export const shouldBeParse = (path, ext) => {
+export const shouldBeParseStyle = (path, ext) => {
 	const accept = (typeof ext === 'string') ? [ext] : (ext || [
 		'.scss',
 		'.sass',
 		'.css'
+	])
+
+	for (const extension of accept) {
+		if (path.endsWith(extension)) {
+			return true
+		}
+	}
+
+	return false
+}
+
+//判断是否import引入了需要解析的后缀
+export const shouldBeParseImage = (path, ext) => {
+	const accept = (typeof ext === 'string') ? [ext] : (ext || [
+		'.png',
+		'.jpg',
+		'.gif',
+		'.jpeg'
 	])
 
 	for (const extension of accept) {

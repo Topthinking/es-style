@@ -32,9 +32,8 @@ module.exports = {
 									"precision": 2
 								},
 								"imageOptions": {
-									'path': resolve(__dirname, './static'),
-									'publicPath':'/',
-									'name': 'images/[name]',
+									'publicPath': '/',
+									'dir':'images/',
 									'limit': 5000
 								}
 							}
