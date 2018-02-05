@@ -3,7 +3,9 @@ import path from 'path'
 import requireResolve from 'require-resolve'
 import sass from 'node-sass'
 import { hashString } from '../../utils'
+
 import postcssSelector from '../../plugins/postcss-selector'
+import postcssImages from '../../plugins/postcss-images'
 
 //node-sass获取style
 export const content = (givenPath, reference, sassOptions) => {
@@ -27,6 +29,8 @@ export const content = (givenPath, reference, sassOptions) => {
 //postcss plugins
 export const parse = (plugins, state) => {
 	const _plugins = []
+	let reference = state && state.file && state.file.opts.filename
+	let imageOptions = state && state.opts && state.opts.imageOptions
 
 	_plugins.push(require('postcss-combine-duplicated-selectors')({ removeDuplicatedProperties: true }))
 	_plugins.push(require('autoprefixer'))
@@ -35,10 +39,21 @@ export const parse = (plugins, state) => {
 	return new Promise(async (resolve, reject) => {
 		try {
 			let result
+			//将sass编译后的源码进行兼容处理，去重处理，压缩处理
 			result = await postcss(_plugins).process(state.styles.join(''), { from: undefined })
+
+			//获取当前的hash值
 			const styleId = hashString(result.css)
-			result = await postcss([postcssSelector({ styleId })]).process(result.css, { from: undefined })
-		
+			
+			//添加自定义插件处理器
+			result = await postcss([
+				postcssSelector({ styleId }),
+				postcssImages({
+					reference,
+					imageOptions
+				})
+			]).process(result.css, { from: undefined })
+			
 			resolve({
 				css: result.css,
 				styleId

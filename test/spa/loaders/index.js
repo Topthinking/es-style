@@ -39,6 +39,8 @@ function loader(content) {
     regExp: options.regExp
   });
 
+  console.log(321,url)
+
   var outputPath = '';
 
   if (options.outputPath) {
@@ -71,6 +73,8 @@ function loader(content) {
     outputPath = url;
   }
 
+  console.log(url)
+
   var publicPath = `__webpack_public_path__ + ${JSON.stringify(url)}`;
 
   if (options.publicPath !== undefined) {
@@ -81,6 +85,7 @@ function loader(content) {
   if (options.emitFile === undefined || options.emitFile) {
     this.emitFile(outputPath, content);
   }
+
   // TODO revert to ES2015 Module export, when new CSS Pipeline is in place
   return `module.exports = ${publicPath};`;
 }

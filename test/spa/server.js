@@ -2,7 +2,8 @@ const express = require('express')
 const { join } = require('path')
 const app = express()
 
-app.use(express.static(join(__dirname,'./dist')))
+app.use(express.static(join(__dirname, './dist')))
+app.use(express.static(join(__dirname,'./static')))
 
 app.use((req, res) => { 
 	res.send(`

@@ -15,14 +15,14 @@
 }
 
 .bg1{
-	background: inline("../images/1.jpg") no-repeat;
+	background: url("../images/1.jpg") no-repeat;
 	width: 100px;
 	height: 100px;
 	background-size: 100%;
 }
 
 .bg2{
-	background: url("../images/1.jpg") no-repeat;
+	background: url(../images/1.jpg) no-repeat;
 	width: 100px;
 	height: 100px;
 	background-size: 100%;

@@ -61,6 +61,8 @@
   },
   "dependencies": {
     "deasync": "^0.1.12",
+    "fs-extra": "^5.0.0",
+    "mime": "^2.2.0",
     "node-sass": "^4.7.2",
     "postcss": "^6.0.16",
     "postcss-combine-duplicated-selectors": "^4.0.1",

@@ -3,8 +3,6 @@ import ReactDOM from 'react-dom'
 import './index.scss'
 import Home from './home'
 
-import bg from '../images/1.jpg'
-
 let yoname = 'name'
 
 yoname = 'yoyoyo'

@@ -4,6 +4,7 @@ module.exports = {
 	entry: join(__dirname,'./src/index.js'),
 	output: {
 		path: resolve(__dirname, './dist'),
+		publicPath:'/',
 		filename:'[name].js'
 	},
 	module: {
@@ -29,6 +30,12 @@ module.exports = {
 								"sassOptions": {
 									"includePaths": ["styles/"],
 									"precision": 2
+								},
+								"imageOptions": {
+									'path': resolve(__dirname, './static'),
+									'publicPath':'/',
+									'name': 'images/[name]',
+									'limit': 5000
 								}
 							}
 						],
@@ -43,12 +50,6 @@ module.exports = {
 						]
 					]
 				}
-			},
-			{
-				test: /\.jpg$/,
-				loader: 'emit-url-loader',
-				exclude: /\/node_modules\//,
-				include:[process.cwd()]
 			}
 		]
 	},
