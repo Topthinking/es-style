@@ -37,7 +37,7 @@ export default ({ types: t }) => {
 				if (typeof state.styles === 'undefined') {
 					state.styles = []
 					state.styleMap = {}
-				}
+				}			
 
 				//全局的引用 './common.scss!'	
 				let globalStyle = false
@@ -62,6 +62,11 @@ export default ({ types: t }) => {
 				//引用图片
 				if (shouldBeParseImage(givenPath, extensions)) { 
 					if (path.node.specifiers.length === 1 && t.isImportDefaultSpecifier(path.node.specifiers[0])) { 
+						
+						if (typeof imageOptions === 'undefined') { 
+							imageOptions = {}
+						}
+						
 						const id = path.node.specifiers[0].local.name
 						const content = parseImage(givenPath, reference, imageOptions)
 						const variable = t.variableDeclarator(t.identifier(id), t.stringLiteral(content))

@@ -31,6 +31,10 @@ export const parse = (plugins, state) => {
 	const _plugins = []
 	let reference = state && state.file && state.file.opts.filename
 	let imageOptions = state && state.opts && state.opts.imageOptions
+	
+	if (typeof imageOptions === 'undefined') { 
+		imageOptions = {}
+	}
 
 	_plugins.push(require('postcss-combine-duplicated-selectors')({ removeDuplicatedProperties: true }))
 	_plugins.push(require('autoprefixer'))
