@@ -25,31 +25,7 @@ module.exports = {
 					presets: ["es2015", "react", "stage-0"],
 					plugins: [
 						[							
-							require('../../dist/babel').default,
-							{
-								"extensions": [
-									".scss"
-								],
-								"plugins": [
-									["postcss-cssnext",{
-											warnForDuplicates: false
-										}
-									],										
-									["postcss-modules",{
-											awardCssModules:true,
-											scopeBehaviour:'local',
-											generateScopedName: '[name]_[local]_[hash:base64:5]]'										
-										}
-									],
-									[
-										'postcss-assets', {
-											loadPaths: ['**'],
-											cachebuster: true
-										}
-									],
-									'autoprefixer',
-									'cssnano'
-								],
+							require('../../babel').default,{
 								"sassOptions": {
 									"includePaths": ["styles/"],
 									"precision": 2
@@ -64,9 +40,6 @@ module.exports = {
 										'es-style/server': require.resolve('../../server')										
 									}
 							}
-						],
-						[
-							'styled-jsx/babel'
 						]
 					]
 				}

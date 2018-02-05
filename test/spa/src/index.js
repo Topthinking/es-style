@@ -5,10 +5,6 @@ import Home from './home'
 
 import bg from '../images/1.jpg'
 
-import('./index.scss')
-
-require('./home')
-
 let yoname = 'name'
 
 yoname = 'yoyoyo'
@@ -25,11 +21,6 @@ const App = () => (
 			<div className="bg2 name">321123</div>
 			<Ims className={true ? cname : ( true ? yoname : cname)} />	
 		</div>
-		<style jsx>{`
-			.bg2{
-				font-size:50px;	
-			}
-		`}</style>
 	</section>	
 )
 

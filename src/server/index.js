@@ -1,5 +1,5 @@
 import React from 'react'
-import { flush } from './style'
+import { flush } from '../es-style'
 
 export default function flushToReact() {
   const mem = flush()
