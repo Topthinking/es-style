@@ -20,7 +20,7 @@ const App = () => (
 			<div className="bg1"></div>
 			<img src={bg}/>
 			<div className="bg2 name">321123</div>
-			<Ims className={true ? cname : ( true ? yoname : cname)} />	
+			<Ims className={true ? cname : (true ? yoname : cname)} {...this.props}/>	
 		</div>
 	</section>	
 )

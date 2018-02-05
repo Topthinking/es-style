@@ -142,12 +142,16 @@ export default ({ types: t }) => {
 				let isExist = false
         //获取对象属性
         if(attrs.length){
-          attrs.map(item=>{
-              if(item.name.name === STYLE_DATA_ES){
-								//直接修改属性
-								item.value = t.StringLiteral(styleId)	
-								isExist = true
-              }
+					attrs.map(item => {
+						if (
+							t.isJSXSpreadAttribute(item) && 
+							t.isJSXIdentifier(item.name) && 
+							item.name.name === STYLE_DATA_ES
+						) {
+							//直接修改属性
+							item.value = t.StringLiteral(styleId)
+							isExist = true
+						}
           })
 				}
 
