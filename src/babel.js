@@ -125,7 +125,7 @@ export default ({ types: t }) => {
 						//确认当前解析的jsx属性是className
 						if (t.isJSXAttribute(item) &&
 								t.isJSXIdentifier(item.name) &&
-								item.name.name === 'className'
+								(item.name.name === 'className' || item.name.name === 'id')
 							) {							
 							HandleClassNameContent(item.value, state)						
 						}	

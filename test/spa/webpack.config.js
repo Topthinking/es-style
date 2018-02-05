@@ -31,16 +31,20 @@ module.exports = {
 									".scss"
 								],
 								"plugins": [
-									["postcss-cssnext",
-										{
+									["postcss-cssnext",{
 											warnForDuplicates: false
 										}
 									],										
-									["postcss-modules",
-										{
+									["postcss-modules",{
 											awardCssModules:true,
 											scopeBehaviour:'local',
 											generateScopedName: '[name]_[local]_[hash:base64:5]]'										
+										}
+									],
+									[
+										'postcss-assets', {
+											loadPaths: ['**'],
+											cachebuster: true
 										}
 									],
 									'autoprefixer',
@@ -60,10 +64,19 @@ module.exports = {
 										'es-style/server': require.resolve('../../server')										
 									}
 							}
+						],
+						[
+							'styled-jsx/babel'
 						]
 					]
 				}
-			}			
+			},
+			{
+				test: /\.jpg$/,
+				loader: 'emit-url-loader',
+				exclude: /\/node_modules\//,
+				include:[process.cwd()]
+			}
 		]
 	},
 	resolveLoader: {

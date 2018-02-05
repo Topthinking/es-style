@@ -11,7 +11,6 @@
   ],
   "babel": {
     "presets": [
-      "babili",
       "es2015",
       "stage-0",
       "react"
@@ -23,7 +22,7 @@
   "scripts": {
     "dev": "taskr",
     "build": "taskr release && node publish.js && cd publish && npm publish",
-    "test_spa": "cd test/spa && npm run dev"
+    "test": "cd test/spa && npm run dev"
   },
   "repository": {
     "type": "git",
@@ -52,9 +51,13 @@
     "del": "^3.0.0",
     "express": "^4.16.2",
     "node-notifier": "^5.2.1",
+    "postcss-assets": "^5.0.0",
     "postcss-cssnext": "^3.1.0",
     "postcss-modules": "^1.1.0",
+    "postcss-sprites": "^4.2.1",
     "react-dom": "^16.2.0",
+    "schema-utils": "^0.4.3",
+    "styled-jsx": "^2.2.3",
     "taskr": "^1.1.0"
   },
   "dependencies": {
