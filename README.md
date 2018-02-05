@@ -30,35 +30,16 @@ yarn add es-style
 ```json
 {
   "plugins": [
-    "es-style/babel",
-    {
-     "extensions": [
-       ".scss"
-     ],
-     "sassOptions": {
-        "includePaths": [
-         "styles/"
-        ],
-        "precision": 2
-      },
-      "plugins": [
-        [
-         "postcss-cssnext",
-          {
-           "warnForDuplicates": false
-          }
-        ],
-        [
-          "postcss-modules",
-          {
-            "awardCssModules": true,
-            "scopeBehaviour": "local",
-            "generateScopedName": "[name]_[local]_[hash:base64:5]]"
-          }
-        ],
-        "autoprefixer",
-        "cssnano"
-      ]
+    "es-style/babel",{
+      "sassOptions": {
+          "includePaths": ["styles/"],
+          "precision": 2
+        },
+        "imageOptions": {
+          "publicPath": "/",
+          "dir":"images/",
+          "limit": 5000
+        }
     }
   ]
 }
