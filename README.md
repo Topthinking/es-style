@@ -68,4 +68,6 @@ import './style/common.scss'
 
 ## 注意
 
-引用`scss`需保证当前引用的js文件内存在`JSXElement`，否则会解析不到
+1. 引用`scss`需保证当前引用的js文件内存在`JSXElement`，否则会解析不到
+
+2. 目前对于全局的`scss`暂时还没有去重处理，所以尽量只引用一份全局的样式文件
