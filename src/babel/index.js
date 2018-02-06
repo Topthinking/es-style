@@ -146,7 +146,7 @@ export default ({ types: t }) => {
 				state.hasJSXStyle = true
 				state.styleId = styleId
 
-				if (state.styles.length) {
+				if (state.styles.length && css !== '') {
 					const attributes = [
 						t.jSXAttribute(
 							t.jSXIdentifier(STYLE_COMPONENT_CSS),

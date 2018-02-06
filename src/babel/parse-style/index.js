@@ -24,7 +24,6 @@ export const parse = (plugins, state) => {
 
 	_plugins.push(require('postcss-combine-duplicated-selectors')({ removeDuplicatedProperties: true }))
 	_plugins.push(require('autoprefixer'))
-	_plugins.push(require('cssnano'))
 
 	return new Promise(async (resolve, reject) => {
 		try {
@@ -42,10 +41,10 @@ export const parse = (plugins, state) => {
 					postcssImages({
 						reference,
 						imageOptions
-					})
+					}),
+					require('cssnano')
 				]).process(result.css, { from: undefined })
 			}
-
 			resolve({
 				css: result.css,
 				styleId

@@ -11,7 +11,7 @@ export default (url, reference, imageOptions) => {
 	if (!/^http(s)?:|^\/\//.test(url)) {							
 		const mod = requireResolve(url, resolve(reference))
 		if (!mod || !mod.src) {
-			throw new Error(`Path '${url}' could not be found for '${reference}'`);
+			console.error(`Path '${url}' could not be found for '${reference}'`);
 		}
 		const src = mod.src
 		const stat = fs.statSync(src)

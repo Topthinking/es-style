@@ -9,7 +9,6 @@ export default postcss.plugin('postcss-images', (options = {}) => {
 			rule.walkDecls(decl => {
 				//查询css的value是否存在url(<地址>)
 				const _match = decl.value.match(/url\((['"]|[^'"])(.*)(['"]|[^'"])\)/)
-			
 				if(_match){
 					let url = _match[2]
 					if(_match[1] != _match[3]){
