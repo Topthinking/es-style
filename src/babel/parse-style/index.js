@@ -1,6 +1,5 @@
 import postcss from 'postcss'
 import path from 'path'
-import requireResolve from 'require-resolve'
 import sass from 'node-sass'
 import { hashString } from '../../utils'
 
@@ -8,23 +7,10 @@ import postcssSelector from '../../plugins/postcss-selector'
 import postcssImages from '../../plugins/postcss-images'
 
 //node-sass获取style
-export const content = (givenPath, reference, sassOptions) => {
-	if (!reference) {
-		throw new Error('"reference" argument must be specified');
-	}
-
-	const mod = requireResolve(givenPath, path.resolve(reference))
-
-	if (!mod || !mod.src) {
-		throw new Error(`Path '${givenPath}' could not be found for '${reference}'`);
-	}
-
-	return sass.renderSync({
-		file: mod.src,
-		...sassOptions
-	}).css.toString()
-
-}
+export const content = (givenPath, sassOptions) => sass.renderSync({
+	file: givenPath,
+	...sassOptions
+}).css.toString()
 
 //postcss plugins
 export const parse = (plugins, state) => {
@@ -42,26 +28,29 @@ export const parse = (plugins, state) => {
 
 	return new Promise(async (resolve, reject) => {
 		try {
-			let result
+			let result,styleId = 0
 			//将sass编译后的源码进行兼容处理，去重处理，压缩处理
 			result = await postcss(_plugins).process(state.styles.join(''), { from: undefined })
 
-			//获取当前的hash值
-			const styleId = hashString(result.css)
-			
-			//添加自定义插件处理器
-			result = await postcss([
-				postcssSelector({ styleId }),
-				postcssImages({
-					reference,
-					imageOptions
-				})
-			]).process(result.css, { from: undefined })
-			
+			if (result.css != '') {
+				//获取当前的hash值
+				styleId = hashString(result.css)
+
+				//添加自定义插件处理器
+				result = await postcss([
+					postcssSelector({ styleId }),
+					postcssImages({
+						reference,
+						imageOptions
+					})
+				]).process(result.css, { from: undefined })
+			}
+
 			resolve({
 				css: result.css,
 				styleId
 			})
+				
 		} catch (err) { 
 			reject(err)
 		}	

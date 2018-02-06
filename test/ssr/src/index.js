@@ -1,20 +1,26 @@
 import React from 'react'
 import './index.scss'
-import Home from './home'
 
-export default () => (
-	<div>
-		<h1 className="name yoyoyo">hello world</h1>
-		<Ims/>	
-	</div>
-)
+import bg from '../images/1.jpg'
 
-class Ims extends React.Component { 
-	render() { 
+export default class App extends React.Component {
+	
+	state = {
+		name: 'hello world'
+	}
+
+	change = () => { 
+		this.setState({
+			name:Math.random()
+		})
+	}
+
+	render() {
 		return (
-			<Home />
-		)
+			<section>
+				<h1 onClick={this.change}>{this.state.name}</h1>
+				<img src={bg} />				
+			</section>
+		)	
 	}
 }
-
-

@@ -4,7 +4,7 @@
   "description": "",
   "main": "clean.js",
   "scripts": {
-    "dev": "node clean.js && webpack && node server.js"
+    "dev": "node server"
   },
   "author": "",
   "license": "ISC"

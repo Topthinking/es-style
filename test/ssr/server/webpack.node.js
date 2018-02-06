@@ -1,9 +1,9 @@
 const { resolve, join } = require('path')
 
 module.exports = {
-	entry: join(__dirname,'./client.js'),
+	entry: join(__dirname,'../src/index.js'),
 	output: {
-		path: resolve(__dirname, './dist'),
+		path: resolve(__dirname, '../dist'),
 		filename:'[name].js'
 	},
 	module: {
@@ -25,33 +25,27 @@ module.exports = {
 					presets: ["es2015", "react", "stage-0"],
 					plugins: [
 						[							
-							'es-style/babel',
-							{
-								"extensions": [
-									".scss"
-								],
-								"plugins": [
-									["postcss-cssnext",
-										{
-											warnForDuplicates: false
-										}
-									],										
-									["postcss-modules",
-										{
-											awardCssModules:true,
-											scopeBehaviour:'local',
-											generateScopedName: '[name]_[local]_[hash:base64:5]]'										
-										}
-									],
-									'autoprefixer',
-									'cssnano'
-								],
+							require('../../../babel').default,{
 								"sassOptions": {
 									"includePaths": ["styles/"],
 									"precision": 2
+								},
+								"imageOptions": {
+									'publicPath': '/',
+									'dir':'images/',
+									'limit': 5000
 								}
 							}
-						]						
+						],
+						[
+							require.resolve('babel-plugin-module-resolver'),
+							{
+									alias: {
+										'es-style': require.resolve('../../../'),
+										'es-style/server': require.resolve('../../../server')										
+									}
+							}
+						]
 					]
 				}
 			}			

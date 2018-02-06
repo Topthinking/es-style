@@ -1,7 +1,10 @@
 import { loopWhile } from 'deasync'
 import { content, parse } from './parse-style'
+import { resolve } from 'path'
+import requireResolve from 'require-resolve'
 import { isObject, shouldBeParseStyle, shouldBeParseImage, hashString } from '../utils'
 import parseImage from "../utils/parse-image"
+import fs from '../watch/fs'
 
 import { 
 	STYLE_COMPONENT,
@@ -10,21 +13,32 @@ import {
 	STYLE_COMPONENT_STYLEID
 } from '../utils/constant'
 
+
 export default ({ types: t }) => {
 	return {
 		visitor: {
 			//全局import es-style
-			Program(path) {
-				if (path.scope.hasBinding(STYLE_COMPONENT)) {
-					return
-				}
+			Program: {
+				enter(path, state) { 
+					if (path.scope.hasBinding(STYLE_COMPONENT)) {
+						return
+					}
 
-				const importDeclaration = t.importDeclaration(
-					[t.importDefaultSpecifier(t.identifier(STYLE_COMPONENT))],
-					t.stringLiteral('es-style')
-				)
-
-				path.node.body.unshift(importDeclaration)
+					const importDeclaration = t.importDeclaration(
+						[t.importDefaultSpecifier(t.identifier(STYLE_COMPONENT))],
+						t.stringLiteral('es-style')
+					)
+					path.node.body.unshift(importDeclaration)
+				},
+				exit(path, state) {
+					let map = state.styleSourceMap
+					if (fs.existsSync('/es-style/babel/style.json')) {
+						map = fs.readFileSync('/es-style/babel/style.json', 'utf-8')
+						map = JSON.parse(map)
+						map = Object.assign(map, state.styleSourceMap)
+					}
+					fs.writeFileSync('/es-style/babel/style.json',JSON.stringify(map))
+				}	
 			},
 			//检测import内容,同时通过sass获取style内容
 			ImportDeclaration(path, state) {
@@ -37,14 +51,18 @@ export default ({ types: t }) => {
 				if (typeof state.styles === 'undefined') {
 					state.styles = []
 					state.styleMap = {}
-				}			
+				}
+				
+				if (typeof state.styleSourceMap === 'undefined') { 
+					state.styleSourceMap = {}
+				}
 
 				//全局的引用 './common.scss!'	
 				let globalStyle = false
 				if (/!$/.test(givenPath)) { 
 					globalStyle = true
 					givenPath = givenPath.replace(/!$/,'')
-				}
+				}				
 
 				//引用样式
 				if (shouldBeParseStyle(givenPath, extensions)) {
@@ -52,6 +70,22 @@ export default ({ types: t }) => {
 
 					if (!isObject(sassOptions)) { 
 						sassOptions = {}
+					}
+
+					const mod = requireResolve(givenPath, resolve(reference))
+
+					if (!mod || !mod.src) {
+						throw new Error(`Path '${givenPath}' could not be found for '${reference}'`);
+					}
+
+					givenPath = mod.src
+
+					if (typeof state.styleSourceMap[givenPath] === 'undefined') {
+						state.styleSourceMap[givenPath] = [reference]
+					} else { 
+						if (state.styleSourceMap[givenPath].indexOf(reference) !== -1) { 
+							state.styleSourceMap[givenPath].push(reference)
+						}
 					}
 
 					const css = content(givenPath, reference, sassOptions)
@@ -146,7 +180,8 @@ export default ({ types: t }) => {
 						if (
 							t.isJSXSpreadAttribute(item) && 
 							t.isJSXIdentifier(item.name) && 
-							item.name.name === STYLE_DATA_ES
+							item.name.name === STYLE_DATA_ES &&
+							styleId !== 0
 						) {
 							//直接修改属性
 							item.value = t.StringLiteral(styleId)
@@ -155,7 +190,7 @@ export default ({ types: t }) => {
           })
 				}
 
-				if (!isExist) { 
+				if (!isExist && styleId !== 0) { 
 					path.node.attributes.push(t.JSXAttribute(
 						t.JSXIdentifier(STYLE_DATA_ES),
 						t.StringLiteral(styleId)

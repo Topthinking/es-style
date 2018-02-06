@@ -18,6 +18,7 @@ const main = async () => {
 	await copy('./dist', './publish/dist')
 
 	await copy('./babel.js', './publish')
+	await copy('./watch.js', './publish')
 	await copy('./server.js', './publish')
 	await copy('./index.js', './publish')
 
