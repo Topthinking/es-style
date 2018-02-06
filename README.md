@@ -62,8 +62,8 @@ complier.plugin('done', () => {
 //组件内生效 改变即触发热更新
 import './style/es-style.scss'
 
-//全局生效  改变需刷新浏览器才能看到变化
-import './style/common.scss'
+//全局生效(!) 改变需刷新浏览器才能看到变化
+import './style/common.scss!'
 ```
 
 ## 注意
