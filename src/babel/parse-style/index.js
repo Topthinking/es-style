@@ -27,26 +27,47 @@ export const parse = (plugins, state) => {
 
 	return new Promise(async (resolve, reject) => {
 		try {
-			let result,styleId = 0
-			//将sass编译后的源码进行兼容处理，去重处理，压缩处理
-			result = await postcss(_plugins).process(state.styles.join(''), { from: undefined })
+			let result, styleId = 0,
+				globalStyle = state.styles.global.join(''),
+				jsxStyle = state.styles.jsx.join('')	
 
-			if (result.css != '') {
-				//获取当前的hash值
-				styleId = hashString(result.css)
+			if (globalStyle != '') {
+				globalStyle = await postcss(_plugins).process(globalStyle, { from: undefined })
 
-				//添加自定义插件处理器
-				result = await postcss([
-					postcssSelector({ styleId }),
-					postcssImages({
-						reference,
-						imageOptions
-					}),
-					require('cssnano')
-				]).process(result.css, { from: undefined })
+				if (globalStyle.css != '') {
+					//添加自定义插件处理器
+					globalStyle = await postcss([
+						postcssImages({
+							reference,
+							imageOptions
+						}),
+						require('cssnano')
+					]).process(globalStyle.css, { from: undefined })
+				}
 			}
+
+			if (jsxStyle != '') {
+				//将sass编译后的源码进行兼容处理，去重处理，压缩处理
+				jsxStyle = await postcss(_plugins).process(jsxStyle, { from: undefined })
+
+				if (jsxStyle.css != '') {
+					//获取当前的hash值
+					styleId = hashString(jsxStyle.css)
+
+					//添加自定义插件处理器
+					jsxStyle = await postcss([
+						postcssSelector({ styleId }),
+						postcssImages({
+							reference,
+							imageOptions
+						}),
+						require('cssnano')
+					]).process(jsxStyle.css, { from: undefined })
+				}
+			}	
 			resolve({
-				css: result.css,
+				global: globalStyle !== '' ? globalStyle.css : '',
+				jsx: jsxStyle !== '' ? jsxStyle.css : '',
 				styleId
 			})
 				

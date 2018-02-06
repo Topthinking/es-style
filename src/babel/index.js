@@ -31,6 +31,7 @@ export default ({ types: t }) => {
 					path.node.body.unshift(importDeclaration)
 				},
 				exit(path, state) {
+					//写信息到内存文件中
 					let map = state.styleSourceMap
 					if (fs.existsSync('/es-style/babel/style.json')) {
 						map = fs.readFileSync('/es-style/babel/style.json', 'utf-8')
@@ -49,8 +50,10 @@ export default ({ types: t }) => {
 				let imageOptions = state && state.opts && state.opts.imageOptions
 
 				if (typeof state.styles === 'undefined') {
-					state.styles = []
-					state.styleMap = {}
+					state.styles = {
+						global: [],
+						jsx: []						
+					}
 				}
 				
 				if (typeof state.styleSourceMap === 'undefined') { 
@@ -89,7 +92,11 @@ export default ({ types: t }) => {
 					}
 
 					const css = content(givenPath, reference, sassOptions)
-					state.styles.push(css)
+					if (globalStyle) {
+						state.styles.global.push(css)
+					} else { 
+						state.styles.jsx.push(css)
+					}
 					path.remove()
 				}
 
@@ -131,7 +138,7 @@ export default ({ types: t }) => {
 				let css,styleId
 				let wait = true
 				parse(plugins, state).then(result => {
-					css = result.css
+					css = result.global + result.jsx
 					styleId = result.styleId
 					wait = false
 				}).catch(err => {
@@ -146,17 +153,23 @@ export default ({ types: t }) => {
 				state.hasJSXStyle = true
 				state.styleId = styleId
 
-				if (state.styles.length && css !== '') {
+				if ((state.styles.global.length || state.styles.jsx.length ) && css !== '') {
 					const attributes = [
 						t.jSXAttribute(
 							t.jSXIdentifier(STYLE_COMPONENT_CSS),
 							t.jSXExpressionContainer(t.stringLiteral(css))
-						),
-						t.jSXAttribute(
-							t.jSXIdentifier(STYLE_COMPONENT_STYLEID),
-							t.jSXExpressionContainer(t.stringLiteral(styleId))
-						),
+						)
 					]
+
+					if (styleId !== 0) { 
+						attributes.push(
+							t.jSXAttribute(
+								t.jSXIdentifier(STYLE_COMPONENT_STYLEID),
+								t.jSXExpressionContainer(t.stringLiteral(styleId))
+							)
+						)
+					}
+
 					path.node.children.push(
 						t.jSXElement(
 							t.jSXOpeningElement(t.jSXIdentifier(STYLE_COMPONENT), attributes, true),

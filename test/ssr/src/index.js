@@ -1,5 +1,6 @@
 import React from 'react'
-import './index.scss'
+import './common.scss!'
+import './index.scss!'
 
 import bg from '../images/1.jpg'
 
@@ -19,7 +20,8 @@ export default class App extends React.Component {
 		return (
 			<section>
 				<h1 onClick={this.change}>{this.state.name}</h1>
-				<img src={bg} />				
+				<img src={bg} />
+				<a>123</a>
 			</section>
 		)	
 	}

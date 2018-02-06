@@ -21,9 +21,9 @@ export default function flushToReact() {
 
 export function flushToHTML() {
   const mem = flush()
-  let html = ''
+  let html = '<style>'
   for (const [id, css] of mem) {
-    html += `<style id="__${id}">${css}</style>`
+    html = html + css
   }
-  return html
+  return html + '</style>'
 }

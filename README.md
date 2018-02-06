@@ -2,11 +2,9 @@
 
 ## 说明
 
-针对服务端渲染项目静态资源引用的处理，使用`es-style`便可以像单页面应用直接引用图片，样式等资源
+`es-style`是针对服务端渲染时的静态资源处理方案
 
-Static resource reference for rendering of a service project, using `es-style` can like 
-
-single-page applications direct reference pictures, style and other resources
+`es-style` is on the server when rendering the static resource processing scheme
 
 ## 体验
 
@@ -57,3 +55,17 @@ complier.plugin('done', () => {
   watch()
 })
 ```
+
+## 项目引用
+```js
+
+//组件内生效 改变即触发热更新
+import './style/es-style.scss'
+
+//全局生效  改变需刷新浏览器才能看到变化
+import './style/common.scss'
+```
+
+## 注意
+
+引用`scss`需保证当前引用的js文件内存在`JSXElement`，否则会解析不到
