@@ -1,10 +1,11 @@
 import { loopWhile } from 'deasync'
-import { content, parse } from './parse-style'
+import * as t from 'babel-types'
 import { resolve } from 'path'
 import requireResolve from 'require-resolve'
 import { isObject, shouldBeParseStyle, shouldBeParseImage, hashString } from '../utils'
 import parseImage from "../utils/parse-image"
 import fs from '../watch/fs'
+import { content, parse } from '../plugins/parse-style'
 
 import { 
 	STYLE_COMPONENT,
@@ -12,6 +13,8 @@ import {
 	STYLE_COMPONENT_CSS,
 	STYLE_COMPONENT_STYLEID
 } from '../utils/constant'
+
+const concat = (a, b) => t.binaryExpression('+', a, b)
 
 
 export default ({ types: t }) => {
@@ -33,20 +36,18 @@ export default ({ types: t }) => {
 				exit(path, state) {
 					//写信息到内存文件中
 					let map = state.styleSourceMap
-					if (fs.existsSync('/es-style/babel/style.json')) {
-						map = fs.readFileSync('/es-style/babel/style.json', 'utf-8')
+					if (fs.existsSync('/es-style/watch.json')) {
+						map = fs.readFileSync('/es-style/watch.json', 'utf-8')
 						map = JSON.parse(map)
 						map = Object.assign(map, state.styleSourceMap)
 					}
-					fs.writeFileSync('/es-style/babel/style.json',JSON.stringify(map))
+					fs.writeFileSync('/es-style/watch.json',JSON.stringify(map))
 				}	
 			},
 			//检测import内容,同时通过sass获取style内容
 			ImportDeclaration(path, state) {
 				let givenPath = path.node.source.value
 				let reference = state && state.file && state.file.opts.filename
-				let extensions = state && state.opts && state.opts.extensions
-				let sassOptions = state && state.opts && state.opts.sassOptions
 				let imageOptions = state && state.opts && state.opts.imageOptions
 
 				if (typeof state.styles === 'undefined') {
@@ -68,12 +69,8 @@ export default ({ types: t }) => {
 				}				
 
 				//引用样式
-				if (shouldBeParseStyle(givenPath, extensions)) {
+				if (shouldBeParseStyle(givenPath)) {
 					path.node.specifiers = []
-
-					if (!isObject(sassOptions)) { 
-						sassOptions = {}
-					}
 
 					const mod = requireResolve(givenPath, resolve(reference))
 
@@ -91,7 +88,7 @@ export default ({ types: t }) => {
 						}
 					}
 
-					const css = content(givenPath, reference, sassOptions)
+					const css = content(givenPath, reference)
 					if (globalStyle) {
 						state.styles.global.push(css)
 					} else { 
@@ -101,7 +98,7 @@ export default ({ types: t }) => {
 				}
 
 				//引用图片
-				if (shouldBeParseImage(givenPath, extensions)) { 
+				if (shouldBeParseImage(givenPath)) { 
 					if (path.node.specifiers.length === 1 && t.isImportDefaultSpecifier(path.node.specifiers[0])) { 
 						
 						if (typeof imageOptions === 'undefined') { 
@@ -187,17 +184,29 @@ export default ({ types: t }) => {
 				const styleId = state.styleId
 
 				let isExist = false
-        //获取对象属性
+        //获取对象属性,添加className
         if(attrs.length){
 					attrs.map(item => {
 						if (
-							t.isJSXSpreadAttribute(item) && 
+							t.isJSXAttribute(item) && 
 							t.isJSXIdentifier(item.name) && 
-							item.name.name === STYLE_DATA_ES &&
+							item.name.name === 'className' &&
 							styleId !== 0
 						) {
-							//直接修改属性
-							item.value = t.StringLiteral(styleId)
+							//值为{}
+							if(t.isJSXExpressionContainer(item.value)){
+								item.value = t.JSXExpressionContainer(
+									concat(t.StringLiteral(STYLE_DATA_ES + '-' + styleId + ' '), item.value.expression)
+								)
+							}
+
+							//值是字符串
+							if (t.isStringLiteral(item.value)) { 
+								item.value = t.JSXExpressionContainer(
+									concat(t.StringLiteral(STYLE_DATA_ES + '-' + styleId + ' '), item.value)	
+								)
+							}
+							
 							isExist = true
 						}
           })
@@ -205,8 +214,8 @@ export default ({ types: t }) => {
 
 				if (!isExist && styleId !== 0) { 
 					path.node.attributes.push(t.JSXAttribute(
-						t.JSXIdentifier(STYLE_DATA_ES),
-						t.StringLiteral(styleId)
+						t.JSXIdentifier('className'),
+						t.StringLiteral(STYLE_DATA_ES + '-' + styleId)						
 					)) 
 				}
 			}

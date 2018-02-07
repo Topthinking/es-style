@@ -8,7 +8,6 @@ export default function flushToReact() {
     arr.push(
       React.createElement('style', {
         id: `__${id}`,
-        // Avoid warnings upon render with a key
         key: `__${id}`,
         dangerouslySetInnerHTML: {
           __html: css
@@ -21,9 +20,9 @@ export default function flushToReact() {
 
 export function flushToHTML() {
   const mem = flush()
-  let html = '<style>'
+  let html = ''
   for (const [id, css] of mem) {
-    html = html + css
+    html += `<style id="__${id}">${css}</style>`
   }
-  return html + '</style>'
+  return html
 }

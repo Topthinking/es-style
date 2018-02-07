@@ -218,6 +218,7 @@ export default class StyleSheet {
   }
 
   makeStyleTag(name, cssString, relativeToTag) {
+    console.log(name, cssString, relativeToTag)
     if (cssString) {
       invariant(
         isString(cssString),
@@ -226,7 +227,7 @@ export default class StyleSheet {
     }
     const tag = document.createElement('style')
     tag.type = 'text/css'
-    tag.setAttribute(`data-${name}`, '')
+    //tag.setAttribute(`data-${name}`, '')
     if (cssString) {
       tag.appendChild(document.createTextNode(cssString))
     }

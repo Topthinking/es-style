@@ -10,7 +10,7 @@ export default class StyleSheetRegistry {
     this._sheet =
       styleSheet ||
       new DefaultStyleSheet({
-        name: 'styled-jsx',
+        name: 'styled-es',
         optimizeForSpeed
       })
     this._sheet.inject()
@@ -118,19 +118,19 @@ export default class StyleSheetRegistry {
   /**
    * createComputeId
    *
-   * Creates a function to compute and memoize a jsx id from a basedId and optionally props.
+   * Creates a function to compute and memoize a es id from a basedId and optionally props.
    */
   createComputeId() {
     const cache = {}
     return function(baseId, props) {
       if (!props) {
-        return `jsx-${baseId}`
+        return `es-${baseId}`
       }
       const propsToString = String(props)
       const key = baseId + propsToString
-      // return `jsx-${hashString(`${baseId}-${propsToString}`)}`
+      // return `es-${hashString(`${baseId}-${propsToString}`)}`
       if (!cache[key]) {
-        cache[key] = `jsx-${hashString(`${baseId}-${propsToString}`)}`
+        cache[key] = `es-${hashString(`${baseId}-${propsToString}`)}`
       }
       return cache[key]
     }
@@ -142,7 +142,7 @@ export default class StyleSheetRegistry {
    * Creates a function to compute and memoize dynamic selectors.
    */
   createComputeSelector(
-    selectoPlaceholderRegexp = /__jsx-style-dynamic-selector/g
+    selectoPlaceholderRegexp = /__es-style-dynamic-selector/g
   ) {
     const cache = {}
     return function(id, css) {
@@ -174,11 +174,11 @@ export default class StyleSheetRegistry {
   /**
    * selectFromServer
    *
-   * Collects style tags from the document with id __jsx-XXX
+   * Collects style tags from the document with id __es-XXX
    */
   selectFromServer() {
     const elements = Array.prototype.slice.call(
-      document.querySelectorAll('[id^="__jsx-"]')
+      document.querySelectorAll('[id^="__es-"]')
     )
 
     return elements.reduce((acc, element) => {

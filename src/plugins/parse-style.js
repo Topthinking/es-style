@@ -1,16 +1,13 @@
 import postcss from 'postcss'
 import path from 'path'
 import sass from 'node-sass'
-import { hashString } from '../../utils'
+import { hashString } from '../utils'
 
-import postcssSelector from '../../plugins/postcss-selector'
-import postcssImages from '../../plugins/postcss-images'
+import postcssSelector from './postcss-selector'
+import postcssImages from './postcss-images'
 
 //node-sass获取style
-export const content = (givenPath, sassOptions) => sass.renderSync({
-	file: givenPath,
-	...sassOptions
-}).css.toString()
+export const content = (givenPath) => sass.renderSync({ file: givenPath }).css.toString()
 
 //postcss plugins
 export const parse = (plugins, state) => {
@@ -27,15 +24,15 @@ export const parse = (plugins, state) => {
 
 	return new Promise(async (resolve, reject) => {
 		try {
-			let result, styleId = 0,
+			let result,
 				globalStyle = state.styles.global.join(''),
-				jsxStyle = state.styles.jsx.join('')	
+				jsxStyle = state.styles.jsx.join(''),
+				styleId = globalStyle === '' && jsxStyle === '' ? 0 : hashString(globalStyle + jsxStyle)				
 
 			if (globalStyle != '') {
 				globalStyle = await postcss(_plugins).process(globalStyle, { from: undefined })
 
 				if (globalStyle.css != '') {
-					//添加自定义插件处理器
 					globalStyle = await postcss([
 						postcssImages({
 							reference,
@@ -47,14 +44,9 @@ export const parse = (plugins, state) => {
 			}
 
 			if (jsxStyle != '') {
-				//将sass编译后的源码进行兼容处理，去重处理，压缩处理
 				jsxStyle = await postcss(_plugins).process(jsxStyle, { from: undefined })
 
 				if (jsxStyle.css != '') {
-					//获取当前的hash值
-					styleId = hashString(jsxStyle.css)
-
-					//添加自定义插件处理器
 					jsxStyle = await postcss([
 						postcssSelector({ styleId }),
 						postcssImages({
@@ -75,41 +67,4 @@ export const parse = (plugins, state) => {
 			reject(err)
 		}	
 	})
-}
-
-const combinePlugin = (_plugins,plugins) => { 
-	if (plugins.length) {
-		plugins.map(item => {
-			if (typeof item === 'string') {
-				let _require = require(item)
-
-				if (_require.default) {
-					_require = _require.default
-				}
-
-				_plugins.push(_require)
-
-			} else if (Array.isArray(item)) {
-				let _require = item[0]
-				if (typeof _require === 'string') {
-					_require = require(_require)
-
-					if (_require.default) {
-						_require = _require.default
-					}
-				}
-
-				if (typeof item[1] != 'undefined' && Object.prototype.toString.call(item[1]) === '[object Object]') {
-					_require = _require(item[1])
-				}
-
-				_plugins.push(_require)
-
-
-			} else {
-				_plugins.push(item)
-			}
-		})
-	}
-	return _plugins
 }

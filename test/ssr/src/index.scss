@@ -1,3 +1,6 @@
+@import '../styles/mixin.scss';
+@import './mixin.scss';
+
 section{
 h1{
 	color:salmon;
@@ -9,6 +12,9 @@ h1{
 }
 
 img{
-	width: 200px;
-	height: 100px;
+	@include wh(300px,400px);
+}
+
+.name{
+	@include c(black);
 }

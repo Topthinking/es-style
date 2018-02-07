@@ -1,22 +1,17 @@
 const React = require('react')
 const ReactDOMServer = require('react-dom/server')
-const { flushToHTML } = require('../../../server')
+import Document from './document'
+import flush from '../../../server'
 
 module.exports = (res, app) => { 
-	const html = ReactDOMServer.renderToStaticMarkup(React.createElement(app))
-  const style = flushToHTML()
+  
+  const _html = ReactDOMServer.renderToStaticMarkup(React.createElement(app))
+  const style = flush()
 
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>测试 hmr</title>
-      ${style}
-    </head>
-    <body>
-      <div id="root">${html}</div>
-      <script src="/main.js" type="text/javascript"></script>
-    </body>
-    </html>
-  `)
+  const html = ReactDOMServer.renderToString(<Document
+    html={_html}
+    style={style}
+  />)
+
+  res.send(`<!DOCTYPE html>${html}`)    
 }

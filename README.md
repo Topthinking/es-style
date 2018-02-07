@@ -2,6 +2,8 @@
 
 ## 说明
 
+版本`0.0.12`为当前稳定版本
+
 `es-style`是针对服务端渲染时的静态资源处理方案
 
 `es-style` is on the server when rendering the static resource processing scheme
@@ -34,19 +36,28 @@ yarn add es-style
 {
   "plugins": [
     "es-style/babel",{
-      "sassOptions": {
-          "includePaths": ["styles/"],
-          "precision": 2
-        },
-        "imageOptions": {
-          "publicPath": "/",
-          "dir":"images/",
-          "limit": 5000
-        }
+      "imageOptions": {
+        "publicPath": "/",
+        "dir":"images/",
+        "limit": 5000
+      }
     }
   ]
 }
 ```
+
+## 配置参数
+
+图片资源默认是放在根目录下的`static`文件夹
+
+`imageOptions` 图片解析参数
+
+`publicPath`图片地址前缀
+
+`dir`存放路径
+
+`limit`小于这个值(字节byte)将存储为base64
+
 
 ## webpack配置
 ```js

@@ -22,10 +22,6 @@ module.exports = {
 					plugins: [
 						[							
 							require('../../../babel').default,{
-								"sassOptions": {
-									"includePaths": ["styles/"],
-									"precision": 2
-								},
 								"imageOptions": {
 									'publicPath': '/',
 									'dir':'images/',
