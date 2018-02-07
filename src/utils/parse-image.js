@@ -1,11 +1,27 @@
 import fs from 'fs-extra'
+import memoryFs, { get } from '../watch/fs'
 import mime from 'mime'
 import requireResolve from 'require-resolve'
 import md5 from 'md5'
 import { resolve, basename, join } from 'path'
+import { isObject } from './'
 
 export default (url, reference, imageOptions) => {
-	const { limit = null , dir = '', publicPath = '/' } = imageOptions
+
+	const watchData = get()
+
+	let {
+		limit = null,
+		dir = '',
+		path = join(process.cwd(), 'dist'),
+		publicPath = '/'
+	} = imageOptions
+	
+	if (Object.keys(watchData).length) { 
+		path = watchData.path
+		publicPath = watchData.publicPath
+	}
+
 	let new_src = url
 	// http:// https:// // 
 	if (!/^http(s)?:|^\/\//.test(url)) {							
@@ -32,10 +48,25 @@ export default (url, reference, imageOptions) => {
 			let _filename = filename.split('.')
 			let ext = _filename.pop() 
 			_filename = _filename.join('.')
-			
-			new_src = join(publicPath, dir, _filename + '_' + md5(data).substr(0,7) + '.' + ext)
-			
-			fs.copySync(src, join(process.cwd(),'static', new_src))								
+			//文件名称
+			_filename = _filename + '_' + md5(data).substr(0,7) + '.' + ext
+
+			if (process.env.NODE_ENV !== 'production') {
+				//开发
+				const new_dir = join('/static', dir)
+				
+				if (!memoryFs.existsSync(new_dir)) { 
+					memoryFs.mkdirpSync(new_dir)
+				}
+				new_src = join(new_dir, _filename)
+
+				memoryFs.writeFileSync(new_src, data)	
+
+			} else { 
+				//发布
+				new_src = join(publicPath, dir, _filename)
+				fs.copySync(src, join(path, dir, _filename))
+			}							
 		}
 	}	
 

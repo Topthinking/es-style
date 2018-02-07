@@ -12,9 +12,10 @@ h1{
 }
 
 img{
-	@include wh(300px,400px);
+	@include wh(400px,400px);
 }
 
-.name{
-	@include c(black);
+.name::after{
+	content: '';
+	@include c(red);
 }

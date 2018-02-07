@@ -123,58 +123,73 @@ export default ({ types: t }) => {
 					}
 				}
 			},			
-			//生成jsx的style对象，同时这里会转译样式资源
+			//生成jsx的style对象，同时插入转译的样式资源
 			JSXElement(path, state) {
-				if (state.hasJSXStyle) {
-					return
+				if (!state.hasParseStyle) {
+					let plugins = state && state.opts && state.opts.plugins
+					if (typeof plugins === 'undefined') {
+						plugins = []
+					}
+					let css, styleId
+					let wait = true
+					parse(plugins, state).then(result => {
+						css = result.global + result.jsx
+						styleId = result.styleId
+						wait = false
+					}).catch(err => {
+						css = err
+					})
+
+					if (css instanceof Error) {
+						throw css
+					}
+
+					loopWhile(() => wait)
+
+					state.hasParseStyle = true
+					state.styleId = styleId
+					state.css = css
 				}
-				let plugins = state && state.opts && state.opts.plugins
-				if (typeof plugins === 'undefined') {
-					plugins = []
-				}
-				let css,styleId
-				let wait = true
-				parse(plugins, state).then(result => {
-					css = result.global + result.jsx
-					styleId = result.styleId
-					wait = false
-				}).catch(err => {
-					css = err
-				})
-
-				if (css instanceof Error) {
-					throw css
+				
+				if (state.hasJsxStyle) { 
+					return 
 				}
 
-				loopWhile(() => wait)
-				state.hasJSXStyle = true
-				state.styleId = styleId
+				const name = path.node.openingElement.name.name
 
-				if ((state.styles.global.length || state.styles.jsx.length ) && css !== '') {
-					const attributes = [
-						t.jSXAttribute(
-							t.jSXIdentifier(STYLE_COMPONENT_CSS),
-							t.jSXExpressionContainer(t.stringLiteral(css))
-						)
-					]
-
-					if (styleId !== 0) { 
-						attributes.push(
+				if (
+          name &&
+          name !== 'style' &&
+          name !== STYLE_COMPONENT &&
+          name.charAt(0) !== name.charAt(0).toUpperCase()
+				) {    
+					state.hasJsxStyle = true
+					if ((state.styles.global.length || state.styles.jsx.length ) && state.css !== '') {
+						const attributes = [
 							t.jSXAttribute(
-								t.jSXIdentifier(STYLE_COMPONENT_STYLEID),
-								t.jSXExpressionContainer(t.stringLiteral(styleId))
+								t.jSXIdentifier(STYLE_COMPONENT_CSS),
+								t.jSXExpressionContainer(t.stringLiteral(state.css))
+							)
+						]
+
+						if (state.styleId !== 0) { 
+							attributes.push(
+								t.jSXAttribute(
+									t.jSXIdentifier(STYLE_COMPONENT_STYLEID),
+									t.jSXExpressionContainer(t.stringLiteral(state.styleId))
+								)
+							)
+						}
+
+						path.node.children.push(
+							t.jSXElement(
+								t.jSXOpeningElement(t.jSXIdentifier(STYLE_COMPONENT), attributes, true),
+								null,
+								[]
 							)
 						)
 					}
-
-					path.node.children.push(
-						t.jSXElement(
-							t.jSXOpeningElement(t.jSXIdentifier(STYLE_COMPONENT), attributes, true),
-							null,
-							[]
-						)
-					)
-				}
+				}	
 			},
 			//根据styleMap修改className，这里需要考虑多种情况
 			JSXOpeningElement(path, state) {

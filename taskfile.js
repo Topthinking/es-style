@@ -1,21 +1,23 @@
 const notifier = require('node-notifier')
 
-export async function compile (task) {
-  await task.parallel(['src'])
-}
-
-export async function src (task, opts) {
+export async function dev (task, opts) {
   await task.source(opts.src || 'src/**/*.js').babel().target('dist/')
   notify('Compiled src files')
 }
 
-export async function build (task) {
-  await task.serial(['compile'])
+export async function build(task, opts) { 
+  await task.source(opts.src || 'src/**/*.js').babel().uglify({
+    compress: {
+      drop_console: true,
+      join_vars: true
+    }
+  }).target('dist/')
+  notify('Compiled src files')
 }
 
 export default async function (task) {
-  await task.start('build')
-  await task.watch('src/**/*.js', 'src')
+  await task.start('dev')
+  await task.watch('src/**/*.js', 'dev')
 }
 
 export async function release (task) {

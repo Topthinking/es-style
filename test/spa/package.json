@@ -4,7 +4,8 @@
   "description": "",
   "main": "clean.js",
   "scripts": {
-    "dev": "node server"
+    "dev": "node server",
+    "build":"NODE_ENV=production webpack --config webpack.prod.config.js"
   },
   "author": "",
   "license": "ISC"

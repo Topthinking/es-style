@@ -9,7 +9,7 @@ module.exports = {
 		join(__dirname, '../src/index.js')
 	],
 	output: {
-		path: resolve(__dirname, '../static'),
+		path: resolve(__dirname, '../dist'),
 		publicPath:'/',
 		filename:'[name].js'
 	},
@@ -20,18 +20,26 @@ module.exports = {
 				loader: 'babel-loader',
 				exclude: /\/node_modules\//,
 				options: {
-					presets: ["es2015", "react", "stage-0"]				
+					presets: ["es2015", "react", "stage-0"],
+					plugins: [
+						[							
+							require('../../../babel').default,{
+								"imageOptions": {
+									'dir':'images/',
+									'limit': 5000
+								}
+							}
+						],
+						[
+							require.resolve('babel-plugin-module-resolver'),
+							{
+									alias: {
+										'es-style': require.resolve('../../../')									
+									}
+							}
+						]
+					]
 				}
-			},
-			{
-				test: /.scss$/,
-				loader: 'style-loader!css-loader!sass-loader',
-				exclude: /\/node_modules\//,
-			},
-			{
-				test: /.jpg$/,
-				loader: 'url-loader?limit=5000',
-				exclude: /\/node_modules\//,
 			}
 		]
 	},

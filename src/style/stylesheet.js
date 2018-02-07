@@ -218,7 +218,6 @@ export default class StyleSheet {
   }
 
   makeStyleTag(name, cssString, relativeToTag) {
-    console.log(name, cssString, relativeToTag)
     if (cssString) {
       invariant(
         isString(cssString),

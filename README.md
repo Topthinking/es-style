@@ -2,11 +2,9 @@
 
 ## 说明
 
-版本`0.0.12`为当前稳定版本
+`es-style`是针对服务端渲染时的静态资源处理方案,同时也适用于单页面应用
 
-`es-style`是针对服务端渲染时的静态资源处理方案
-
-`es-style` is on the server when rendering the static resource processing scheme
+`es-style` is on the server when rendering the static resource processing scheme, It also applies to single-page applications.
 
 ## 体验
 
@@ -30,14 +28,14 @@ or
 ```shell
 yarn add es-style
 ```
+## webpack - 开发
 
-## babel 配置
+babel 配置
 ```json
 {
   "plugins": [
     "es-style/babel",{
       "imageOptions": {
-        "publicPath": "/",
         "dir":"images/",
         "limit": 5000
       }
@@ -46,26 +44,35 @@ yarn add es-style
 }
 ```
 
-## 配置参数
+开发环境需配合express来搭建服务，具体配置参考`test/spa/server/index.js`
 
-图片资源默认是放在根目录下的`static`文件夹
-
-`imageOptions` 图片解析参数
-
-`publicPath`图片地址前缀
-
-`dir`存放路径
-
-`limit`小于这个值(字节byte)将存储为base64
-
-
-## webpack配置
+如果不配置的话，会导致图片资源访问不了
 ```js
-import watch from 'es-style/watch'
-complier.plugin('done', () => {  
-  watch()
-})
+const webpack = require('webpack')
+const webpackConfig = require('./webpack.dev.config')
+const app = express()
+const compiler = watch(webpack(webpackConfig), app)
 ```
+
+## webpack - 发布
+
+babel 配置
+```json
+{
+  "plugins": [
+    "es-style/babel",{
+      "imageOptions": {
+        "path": "./dist",        
+        "publicPath":"/",
+        "dir":"images/",
+        "limit": 5000
+      }
+    }
+  ]
+}
+```
+⚠️ 发布的时候，`path`和`publicPath`的配置和`webpack`的`output`里面的配置项一致
+
 
 ## 项目引用
 ```js

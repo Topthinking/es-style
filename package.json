@@ -1,6 +1,6 @@
 {
   "name": "es-style",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "license": "MIT",
   "description": "easy stylesheet style",
   "files": [
@@ -22,9 +22,11 @@
   },
   "scripts": {
     "dev": "taskr",
-    "build": "taskr release && node publish.js && cd publish && npm publish",
+    "release":"taskr release",
+    "build": "npm run release && node publish.js && cd publish && npm publish",
     "spa": "cd test/spa && npm run dev",
-    "ssr": "cd test/ssr && npm run dev"
+    "ssr": "cd test/ssr && npm run dev",
+    "spa_build":"cd test/spa && npm run build"
   },
   "repository": {
     "type": "git",
@@ -39,6 +41,7 @@
     "@taskr/babel": "^1.1.0",
     "@taskr/clear": "^1.1.0",
     "@taskr/esnext": "^1.1.0",
+    "@taskr/uglify": "^1.1.0",
     "@taskr/watch": "^1.1.0",
     "autoprefixer": "^7.2.5",
     "babel-core": "^6.26.0",

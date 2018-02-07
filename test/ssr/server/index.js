@@ -4,7 +4,7 @@ const webpack = require('webpack')
 const webpackWeb = require('./webpack.web')
 const webpackNode = require('./webpack.node')
 const render = require('./render')
-const watch = require('../../../watch').default
+import watch from '../../../watch'
 
 function clearConsole() {
   process.stdout.write(process.platform === 'win32' ? '\x1B[2J\x1B[0f' : '\x1B[2J\x1B[3J\x1B[H');
@@ -12,7 +12,7 @@ function clearConsole() {
 
 const port = 8080
 const app = express()
-const compiler = webpack(webpackWeb)
+const compiler = watch(webpack(webpackWeb),app)
 
 const _compiler = webpack(webpackNode)
 _compiler.run(() => { })
@@ -33,12 +33,11 @@ _compiler.plugin('done', () => {
   if (process.stdout.isTTY) {
     clearConsole();
   }
-  watch()
   console.log('Compiled successfully!')
 })
 
 
-const devMiddleware = require('webpack-dev-middleware')(compiler, {
+const devMiddleware = require('webpack-dev-middleware')((compiler), {
   publicPath: webpackWeb.output.publicPath,
   logLevel: 'error'
 })
@@ -59,9 +58,6 @@ compiler.plugin('compilation', function (compilation) {
 app.use(require('connect-history-api-fallback')())
 app.use(devMiddleware)
 app.use(hotMiddleware)
-
-app.use(express.static('./dist'))
-app.use(express.static('./static'))
 
 app.use((req, res) => { 
   const RootPageEntry = path.join(process.cwd(), 'dist/src')

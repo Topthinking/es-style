@@ -1,11 +1,13 @@
 const path = require('path')
 const express = require('express')
 const webpack = require('webpack')
-const webpackConfig = require('./webpack.config')
+const MemoryFileSystem = require('memory-fs');
+const webpackConfig = require('./webpack.dev.config')
+const watch = require('../../../watch')
 
 const port = 3000
 const app = express()
-const compiler = webpack(webpackConfig)
+const compiler = watch(webpack(webpackConfig), app)
 
 function clearConsole() {
   process.stdout.write(process.platform === 'win32' ? '\x1B[2J\x1B[0f' : '\x1B[2J\x1B[3J\x1B[H');
@@ -40,15 +42,13 @@ compiler.plugin('invalid', () => {
 compiler.plugin('done', () => {
   if (process.stdout.isTTY) {
     clearConsole();
-  }
+  }    
   console.log('Compiled successfully!')
 })
 
 app.use(require('connect-history-api-fallback')())
 app.use(devMiddleware)
 app.use(hotMiddleware)
-
-app.use(express.static('./static'))
 
 console.log('> Starting dev server...')
 devMiddleware.waitUntilValid(() => {

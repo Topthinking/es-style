@@ -20,9 +20,7 @@ export default class JSXStyle extends Component {
   shouldComponentUpdate(nextProps) {
     return this.props.css !== nextProps.css
   }
-
-  // To avoid FOUC, we process new changes
-  // on `componentWillUpdate` rather than `componentDidUpdate`.
+  
   componentWillUpdate(nextProps) {
     styleSheetRegistry.update(this.props, nextProps)
   }
