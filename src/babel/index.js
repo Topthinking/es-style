@@ -122,7 +122,7 @@ export default ({ types: t }) => {
 						})
 					}
 				}
-			},			
+			},	
 			//生成jsx的style对象，同时插入转译的样式资源
 			JSXElement(path, state) {
 				if (!state.hasParseStyle) {

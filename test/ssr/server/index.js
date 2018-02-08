@@ -10,7 +10,7 @@ function clearConsole() {
   process.stdout.write(process.platform === 'win32' ? '\x1B[2J\x1B[0f' : '\x1B[2J\x1B[3J\x1B[H');
 }
 
-const port = 8080
+const port = 3000
 const app = express()
 const compiler = watch(webpack(webpackWeb),app)
 
@@ -58,6 +58,8 @@ compiler.plugin('compilation', function (compilation) {
 app.use(require('connect-history-api-fallback')())
 app.use(devMiddleware)
 app.use(hotMiddleware)
+
+app.use(express.static('./static'))
 
 app.use((req, res) => { 
   const RootPageEntry = path.join(process.cwd(), 'dist/src')

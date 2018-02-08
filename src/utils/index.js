@@ -30,7 +30,8 @@ export const shouldBeParseImage = (path) => {
 		'.png',
 		'.jpg',
 		'.gif',
-		'.jpeg'
+		'.jpeg',
+		'.svg'
 	]
 
 	for (const extension of accept) {

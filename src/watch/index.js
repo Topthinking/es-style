@@ -33,11 +33,9 @@ module.exports = (compiler, app = null) => {
     app.use((req, res, next) => {      
       if (/^\/static\//.test(req.url)) {
         if (memoryFs.existsSync(req.url)) {
-          res.status(200).send(memoryFs.readFileSync(req.url))
-        } else {
-          res.status(404).send('')
+          res.status(200).attachment(req.url).send(memoryFs.readFileSync(req.url))
+          return 
         }
-        return
       }
       next()
     })

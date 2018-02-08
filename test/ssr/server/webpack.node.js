@@ -29,7 +29,7 @@ module.exports = {
 								"imageOptions": {
 									'publicPath': '/',
 									'dir':'images/',
-									'limit': 5000
+									'limit': 50
 								}
 							}
 						],

@@ -19,3 +19,8 @@ img{
 	content: '';
 	@include c(red);
 }
+
+.svgIcon{
+	display: inline-block;
+	vertical-align: middle;
+}
