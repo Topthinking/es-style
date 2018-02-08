@@ -4,7 +4,7 @@ export default (props) => (
 	<html>
 		<head>
 			<title>测试 hmr</title>
-			{props.style}			
+			{props.style}	
     </head>
     <body>
 			<div id="root" dangerouslySetInnerHTML={{ __html: props.html }} />			

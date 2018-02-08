@@ -16,7 +16,7 @@ img{
 }
 
 .name::after{
-	content: '';
+	content: '\2022\2022';
 	@include c(red);
 }
 

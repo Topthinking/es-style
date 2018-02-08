@@ -59,8 +59,6 @@ app.use(require('connect-history-api-fallback')())
 app.use(devMiddleware)
 app.use(hotMiddleware)
 
-app.use(express.static('./static'))
-
 app.use((req, res) => { 
   const RootPageEntry = path.join(process.cwd(), 'dist/src')
   const data = require(RootPageEntry).default
