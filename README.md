@@ -2,9 +2,11 @@
 
 ## 说明
 
-`es-style`是针对服务端渲染时的静态资源处理方案,同时也适用于单页面应用
+`es-style`服务于`react`项目，它是针对服务端渲染时的静态资源处理方案,同时也适用于单页面应用
 
-`es-style` is on the server when rendering the static resource processing scheme, It also applies to single-page applications.
+`es-style`serve`react`project, it is on the server when rendering the static resource processing scheme, 
+
+at the same time can also be applied to single page application
 
 ## 体验
 

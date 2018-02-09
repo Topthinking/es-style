@@ -1,4 +1,5 @@
 import React from 'react'
+import { Helmet } from "react-helmet"
 import './common.scss!'
 import './index.scss'
 
@@ -13,7 +14,14 @@ const A = () => (
 )
 
 const B = () => (
-	<span className="name">hello world</span>
+	<span className="name">hello world
+		<Helmet>
+			<title>My Title123</title>
+			<style>{`.name{
+						color:red;
+					}`}</style>
+				</Helmet>
+	</span>
 )
 
 export default class App extends React.Component {
@@ -32,6 +40,14 @@ export default class App extends React.Component {
 		const icon = 'web_album_ic_lock'
 		return (
 			<section>
+				<Helmet>
+					<meta charSet="utf-8" />
+					<title>My Title</title>
+					<link rel="canonical" href="http://mysite.com/example" />
+					<style>{`.name{
+						color:red;
+					}`}</style>
+				</Helmet>
 				<A />
 				<B />
 				<div className='svgIcon'>
