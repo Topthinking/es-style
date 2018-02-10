@@ -1,6 +1,6 @@
 {
   "name": "es-style",
-  "version": "0.0.16",
+  "version": "0.0.19",
   "license": "MIT",
   "description": "easy stylesheet style",
   "files": [
@@ -23,7 +23,8 @@
   "scripts": {
     "dev": "taskr",
     "release": "taskr release",
-    "build": "npm run release && node publish.js && cd publish && npm publish",
+    "build": "npm run release && npm run start",
+    "start":"node publish.js && cd publish && npm publish",
     "spa": "cd test/spa && npm run dev",
     "ssr": "cd test/ssr && npm run dev",
     "spa_build": "cd test/spa && npm run build"
@@ -53,15 +54,13 @@
     "babel-preset-stage-0": "^6.24.1",
     "babel-register": "^6.26.0",
     "css-loader": "^0.28.9",
-    "cssnano": "^3.10.0",
     "del": "^3.0.0",
+    "es-style": "latest",
     "express": "^4.16.2",
     "file-loader": "^1.1.6",
     "html-webpack-plugin": "^2.30.1",
     "node-notifier": "^5.2.1",
     "postcss-assets": "^5.0.0",
-    "postcss-cssnext": "^3.1.0",
-    "postcss-modules": "^1.1.0",
     "postcss-sprites": "^4.2.1",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
@@ -78,6 +77,7 @@
   },
   "dependencies": {
     "autoprefixer": "^7.2.5",
+    "cssnano": "^3.10.0",
     "chokidar": "^2.0.0",
     "deasync": "^0.1.12",
     "fs-extra": "^5.0.0",
@@ -86,7 +86,6 @@
     "mime": "^2.2.0",
     "node-sass": "^4.7.2",
     "postcss": "^6.0.16",
-    "postcss-combine-duplicated-selectors": "^4.0.1",
     "react": "^16.2.0",
     "require-resolve": "^0.0.2",
     "string-hash": "^1.1.3"

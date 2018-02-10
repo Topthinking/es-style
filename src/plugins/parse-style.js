@@ -19,43 +19,52 @@ export const parse = (plugins, state) => {
 		imageOptions = {}
 	}
 
-	_plugins.push(require('postcss-combine-duplicated-selectors')({ removeDuplicatedProperties: true }))
-	_plugins.push(require('autoprefixer'))
+	_plugins.push(
+		require('autoprefixer')({
+			"browsers": [
+				"ie >= 8",
+				"iOS >= 8",
+				"Firefox >= 20",
+				"Android > 4.4"
+			]
+		})			
+	)
+	
+	const _nextPlugins = [
+		postcssImages({
+			reference,
+			imageOptions
+		}),
+		require('cssnano')({
+			reduceIdents: false,
+			zindex: false
+		})
+	]	
 
 	return new Promise(async (resolve, reject) => {
 		try {
 			let result,
 				globalStyle = state.styles.global.join(''),
 				jsxStyle = state.styles.jsx.join(''),
-				styleId = globalStyle === '' && jsxStyle === '' ? 0 : hashString(globalStyle + jsxStyle)				
-
+				styleId = globalStyle === '' && jsxStyle === '' ? 0 : hashString(globalStyle + jsxStyle)
+				
+			const globalPlugins = [
+				..._plugins,
+				..._nextPlugins
+			]
+			
+			const jsxPlugins = [
+				..._plugins,
+				postcssSelector({ styleId }),
+				..._nextPlugins
+			]
+		
 			if (globalStyle != '') {
-				globalStyle = await postcss(_plugins).process(globalStyle, { from: undefined })
-
-				if (globalStyle.css != '') {
-					globalStyle = await postcss([
-						postcssImages({
-							reference,
-							imageOptions
-						}),
-						require('cssnano')
-					]).process(globalStyle.css, { from: undefined })
-				}
+				globalStyle = await postcss(globalPlugins).process(globalStyle, { from: undefined })
 			}
 
 			if (jsxStyle != '') {
-				jsxStyle = await postcss(_plugins).process(jsxStyle, { from: undefined })
-
-				if (jsxStyle.css != '') {
-					jsxStyle = await postcss([
-						postcssSelector({ styleId }),
-						postcssImages({
-							reference,
-							imageOptions
-						}),
-						require('cssnano')
-					]).process(jsxStyle.css, { from: undefined })
-				}
+				jsxStyle = await postcss(jsxPlugins).process(jsxStyle, { from: undefined })
 			}	
 			resolve({
 				global: globalStyle !== '' ? globalStyle.css : '',

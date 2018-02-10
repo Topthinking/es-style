@@ -17,10 +17,7 @@ const B = () => (
 	<span className="name">hello world
 		<Helmet>
 			<title>My Title123</title>
-			<style>{`.name{
-						color:red;
-					}`}</style>
-				</Helmet>
+		</Helmet>
 	</span>
 )
 
@@ -43,10 +40,6 @@ export default class App extends React.Component {
 				<Helmet>
 					<meta charSet="utf-8" />
 					<title>My Title</title>
-					<link rel="canonical" href="http://mysite.com/example" />
-					<style>{`.name{
-						color:red;
-					}`}</style>
 				</Helmet>
 				<A />
 				<B />

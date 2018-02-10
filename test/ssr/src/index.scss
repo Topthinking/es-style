@@ -22,5 +22,31 @@ img{
 
 .svgIcon{
 	display: inline-block;
-	vertical-align: middle;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+	overflow: hidden;
+text-overflow: ellipsis; //
+display: -webkit-box;
+-webkit-box-orient: vertical; //
+-webkit-line-clamp: 2;
+text-overflow: -o-ellipsis-lastline;
+
+max-height: 40px;
+line-height: 1.4;
+color: #333;
+font-size: 14px;
+z-index: 21212;
+}
+
+@keyframes fadeOut {
+	from {
+			opacity: 1;
+	}
+	to {
+			opacity: 0;
+	}
+}
+.box {
+	z-index: 123;
+	animation-name: fadeOut;
 }

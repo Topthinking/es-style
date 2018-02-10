@@ -50,6 +50,7 @@ babel 配置
 
 如果不配置的话，会导致图片资源访问不了
 ```js
+const watch = require('es-style/watch')
 const webpack = require('webpack')
 const webpackConfig = require('./webpack.dev.config')
 const app = express()
