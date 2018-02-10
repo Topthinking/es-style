@@ -16,22 +16,30 @@ import {
 
 const concat = (a, b) => t.binaryExpression('+', a, b)
 
-
 export default ({ types: t }) => {
 	return {
 		visitor: {
 			//全局import es-style
 			Program: {
-				enter(path, state) { 
+				enter(path, state) {
+					//插入import ‘es-style‘
 					if (path.scope.hasBinding(STYLE_COMPONENT)) {
 						return
 					}
 
-					const importDeclaration = t.importDeclaration(
+					path.node.body.unshift(t.importDeclaration(
 						[t.importDefaultSpecifier(t.identifier(STYLE_COMPONENT))],
 						t.stringLiteral('es-style')
-					)
-					path.node.body.unshift(importDeclaration)
+					))
+					
+					path.traverse({
+						JSXOpeningElement(path) {
+							if (path.node.name.name === 'es-style' || path.node.name.name === 'es.style') { 
+								state.hasEsStyleElement = true
+							}
+						}
+					})
+					
 				},
 				exit(path, state) {
 					//写信息到内存文件中
@@ -41,8 +49,8 @@ export default ({ types: t }) => {
 						map = JSON.parse(map)
 						map = Object.assign(map, state.styleSourceMap)
 					}
-					fs.writeFileSync('/es-style/watch.json',JSON.stringify(map))
-				}	
+					fs.writeFileSync('/es-style/watch.json', JSON.stringify(map))
+				}
 			},
 			//检测import内容,同时通过sass获取style内容
 			ImportDeclaration(path, state) {
@@ -53,20 +61,20 @@ export default ({ types: t }) => {
 				if (typeof state.styles === 'undefined') {
 					state.styles = {
 						global: [],
-						jsx: []						
+						jsx: []
 					}
 				}
 				
-				if (typeof state.styleSourceMap === 'undefined') { 
+				if (typeof state.styleSourceMap === 'undefined') {
 					state.styleSourceMap = {}
 				}
 
 				//全局的引用 './common.scss!'	
 				let globalStyle = false
-				if (/!$/.test(givenPath)) { 
+				if (/!$/.test(givenPath)) {
 					globalStyle = true
-					givenPath = givenPath.replace(/!$/,'')
-				}				
+					givenPath = givenPath.replace(/!$/, '')
+				}
 
 				//引用样式
 				if (shouldBeParseStyle(givenPath)) {
@@ -82,8 +90,8 @@ export default ({ types: t }) => {
 
 					if (typeof state.styleSourceMap[givenPath] === 'undefined') {
 						state.styleSourceMap[givenPath] = [reference]
-					} else { 
-						if (state.styleSourceMap[givenPath].indexOf(reference) !== -1) { 
+					} else {
+						if (state.styleSourceMap[givenPath].indexOf(reference) !== -1) {
 							state.styleSourceMap[givenPath].push(reference)
 						}
 					}
@@ -91,17 +99,17 @@ export default ({ types: t }) => {
 					const css = content(givenPath, reference)
 					if (globalStyle) {
 						state.styles.global.push(css)
-					} else { 
+					} else {
 						state.styles.jsx.push(css)
 					}
 					path.remove()
 				}
 
 				//引用图片
-				if (shouldBeParseImage(givenPath)) { 
-					if (path.node.specifiers.length === 1 && t.isImportDefaultSpecifier(path.node.specifiers[0])) { 
+				if (shouldBeParseImage(givenPath)) {
+					if (path.node.specifiers.length === 1 && t.isImportDefaultSpecifier(path.node.specifiers[0])) {
 						
-						if (typeof imageOptions === 'undefined') { 
+						if (typeof imageOptions === 'undefined') {
 							imageOptions = {}
 						}
 						
@@ -122,9 +130,9 @@ export default ({ types: t }) => {
 						})
 					}
 				}
-			},	
+			},
 			//生成jsx的style对象，同时插入转译的样式资源
-			JSXElement(path, state) {
+			JSXElement(path, state) {				
 				if (!state.hasParseStyle) {
 					let plugins = state && state.opts && state.opts.plugins
 					if (typeof plugins === 'undefined') {
@@ -150,46 +158,86 @@ export default ({ types: t }) => {
 					state.styleId = styleId
 					state.css = css
 				}
-				
-				if (state.hasJsxStyle) { 
-					return 
-				}
 
 				const name = path.node.openingElement.name.name
-
+				
 				if (
-          name &&
-          name !== 'style' &&
-          name !== STYLE_COMPONENT &&
-          name.charAt(0) !== name.charAt(0).toUpperCase()
-				) {    
-					state.hasJsxStyle = true
-					if ((state.styles.global.length || state.styles.jsx.length ) && state.css !== '') {
-						const attributes = [
-							t.jSXAttribute(
-								t.jSXIdentifier(STYLE_COMPONENT_CSS),
-								t.jSXExpressionContainer(t.stringLiteral(state.css))
-							)
-						]
+					name &&
+					name !== STYLE_COMPONENT && 
+					name.charAt(0) !== name.charAt(0).toUpperCase() &&
+					name !== 'style'
+				) {					
+					if (name === 'es-style' || name === 'es.style') {
+						if (state.hasEsStyle) {
+							path.remove()
+							return
+						}	
+						//存在es-style标签，则替换标签
+						if (state.hasEsStyleElement) {
+							state.hasEsStyle = true
+							if ((state.styles.global.length || state.styles.jsx.length) && state.css !== '') {
+								const attributes = [
+									t.jSXAttribute(
+										t.jSXIdentifier(STYLE_COMPONENT_CSS),
+										t.jSXExpressionContainer(t.stringLiteral(state.css))
+									)
+								]
 
-						if (state.styleId !== 0) { 
-							attributes.push(
-								t.jSXAttribute(
-									t.jSXIdentifier(STYLE_COMPONENT_STYLEID),
-									t.jSXExpressionContainer(t.stringLiteral(state.styleId))
+								if (state.styleId !== 0) {
+									attributes.push(
+										t.jSXAttribute(
+											t.jSXIdentifier(STYLE_COMPONENT_STYLEID),
+											t.jSXExpressionContainer(t.stringLiteral(state.styleId))
+										)
+									)
+								}
+
+								path.replaceWith(
+									t.jSXElement(
+										t.jSXOpeningElement(t.jSXIdentifier(STYLE_COMPONENT), attributes, true),
+										null,
+										[]
+									)
 								)
-							)
+							}
+						}	
+					} else {
+						if (state.hasJsxStyle) {
+							return
 						}
+						
+						//不存在es-style标签，就添加元素
+						if (!state.hasEsStyleElement) {
+							state.hasJsxStyle = true
+		
+							if ((state.styles.global.length || state.styles.jsx.length) && state.css !== '') {
+								const attributes = [
+									t.jSXAttribute(
+										t.jSXIdentifier(STYLE_COMPONENT_CSS),
+										t.jSXExpressionContainer(t.stringLiteral(state.css))
+									)
+								]
+		
+								if (state.styleId !== 0) {
+									attributes.push(
+										t.jSXAttribute(
+											t.jSXIdentifier(STYLE_COMPONENT_STYLEID),
+											t.jSXExpressionContainer(t.stringLiteral(state.styleId))
+										)
+									)
+								}
 
-						path.node.children.push(
-							t.jSXElement(
-								t.jSXOpeningElement(t.jSXIdentifier(STYLE_COMPONENT), attributes, true),
-								null,
-								[]
-							)
-						)
+								state.stylePath = t.jSXElement(
+									t.jSXOpeningElement(t.jSXIdentifier(STYLE_COMPONENT), attributes, true),
+									null,
+									[]
+								)
+		
+								path.node.children.push(state.stylePath)
+							}
+						}	
 					}
-				}	
+				}
 			},
 			//根据styleMap修改className，这里需要考虑多种情况
 			JSXOpeningElement(path, state) {

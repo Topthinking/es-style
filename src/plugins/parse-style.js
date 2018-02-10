@@ -21,12 +21,7 @@ export const parse = (plugins, state) => {
 
 	_plugins.push(
 		require('autoprefixer')({
-			"browsers": [
-				"ie >= 8",
-				"iOS >= 8",
-				"Firefox >= 20",
-				"Android > 4.4"
-			]
+			"browsers": "last 4 version"
 		})			
 	)
 	
@@ -36,6 +31,7 @@ export const parse = (plugins, state) => {
 			imageOptions
 		}),
 		require('cssnano')({
+			autoprefixer: false,
 			reduceIdents: false,
 			zindex: false
 		})

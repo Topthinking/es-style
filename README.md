@@ -85,6 +85,14 @@ import './style/es-style.scss'
 
 //全局生效(!) 改变需刷新浏览器才能看到变化
 import './style/common.scss!'
+
+//可以使用<es-style/>来定位css的存放位置
+export default () => (
+  <div>
+    <es-style/>
+  </div>
+)
+//如果没有es-style标签，那么会从上往下按就近原则存放css的资源组件
 ```
 
 ## 注意
