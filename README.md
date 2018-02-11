@@ -100,3 +100,5 @@ export default () => (
 1. 引用`scss`需保证当前引用的js文件内存在`JSXElement`，否则会解析不到
 
 2. 目前对于全局的`scss`暂时还没有去重处理，所以尽量只引用一份全局的样式文件
+
+3. `es-style`不支持`happypack`,使用会导致图片资源丢失
