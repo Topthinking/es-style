@@ -33,7 +33,8 @@ export const parse = (plugins, state) => {
 		require('cssnano')({
 			autoprefixer: false,
 			reduceIdents: false,
-			zindex: false
+			zindex: false,
+			minifyGradients: false
 		})
 	]	
 
