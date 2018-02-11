@@ -64,7 +64,7 @@ export default (url, reference, imageOptions) => {
 
 			} else { 
 				//发布
-				new_src = join(publicPath, dir, _filename)
+				new_src = [publicPath, dir, _filename].join("")
 				fs.copySync(src, join(path, dir, _filename))
 			}							
 		}

@@ -21,8 +21,8 @@ module.exports = {
 						[							
 							require('../../babel').default,{
 								"imageOptions": {
-									'path': resolve(__dirname, './dist'),
-									'publicPath':'./',
+									'path': resolve(__dirname, './public'),
+									'publicPath':'/',
 									'dir':'images/',
 									'limit': 5000
 								}
