@@ -51,7 +51,11 @@ export default (url, reference, imageOptions) => {
 			//文件名称
 			_filename = _filename + '_' + md5(data).substr(0,7) + '.' + ext
 
-			if (process.env.NODE_ENV !== 'production') {
+			if (/production/.test(process.env.NODE_ENV)) {
+				//发布
+				new_src = [publicPath, dir, _filename].join("")
+				fs.copySync(src, join(path, dir, _filename))				
+			} else { 
 				//开发
 				const new_dir = join('/static', dir)
 				
@@ -61,11 +65,6 @@ export default (url, reference, imageOptions) => {
 				new_src = join(new_dir, _filename)
 
 				memoryFs.writeFileSync(new_src, data)	
-
-			} else { 
-				//发布
-				new_src = [publicPath, dir, _filename].join("")
-				fs.copySync(src, join(path, dir, _filename))
 			}							
 		}
 	}	
