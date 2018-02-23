@@ -1,0 +1,2 @@
+rm -rf ../../work/ximalaya/framework/library/award.js/examples/ximalaya.com/node_modules/es-style/dist/
+ cp -r ./dist ../../work/ximalaya/framework/library/award.js/examples/ximalaya.com/node_modules/es-style/
