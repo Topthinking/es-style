@@ -35,7 +35,7 @@ export default ({ types: t }) => {
 					path.traverse({
 						JSXOpeningElement(path) {
 							if (path.node.name.name === 'es-style' || path.node.name.name === 'es.style') { 
-								state.hasEsStyleElement = true
+								state.hasEsStyleElement = true								
 							}
 						}
 					})
@@ -57,6 +57,12 @@ export default ({ types: t }) => {
 				let givenPath = path.node.source.value
 				let reference = state && state.file && state.file.opts.filename
 				let imageOptions = state && state.opts && state.opts.imageOptions
+				let type = state && state.opts && state.opts.type	
+				
+				state.styleType = 'class'
+				if (['class', 'attribute'].indexOf(type) !== -1) { 
+					state.styleType = type
+				}
 
 				if (typeof state.styles === 'undefined') {
 					state.styles = {
@@ -246,14 +252,54 @@ export default ({ types: t }) => {
 				}
 
 				//拿到当前的JSX对象的访问路径
+				const el = path.node;
+				const attrs = el.attributes
 				const styleId = state.styleId
 
-				if (styleId !== 0) { 
-					path.node.attributes.push(t.JSXAttribute(
+				if (state.styleType === 'class') {
+					let isExist = false
+					//获取对象属性,添加className
+					if (attrs.length) {
+						attrs.map(item => {
+							if (
+								t.isJSXAttribute(item) &&
+								t.isJSXIdentifier(item.name) &&
+								item.name.name === 'className' &&
+								styleId !== 0
+							) {
+								//值为{}
+								if (t.isJSXExpressionContainer(item.value)) {
+									item.value = t.JSXExpressionContainer(
+										concat(t.StringLiteral(STYLE_DATA_ES + '-' + styleId + ' '), item.value.expression)
+									)
+								}
+
+								//值是字符串
+								if (t.isStringLiteral(item.value)) {
+									item.value = t.JSXExpressionContainer(
+										concat(t.StringLiteral(STYLE_DATA_ES + '-' + styleId + ' '), item.value)
+									)
+								}
+							
+								isExist = true
+							}
+						})
+					}
+
+					if (!isExist && styleId !== 0) {
+						path.node.attributes.push(t.JSXAttribute(
+							t.JSXIdentifier('className'),
+							t.StringLiteral(STYLE_DATA_ES + '-' + styleId)
+						))
+					}
+				} else {
+					if (styleId !== 0) {
+						path.node.attributes.push(t.JSXAttribute(
 							t.JSXIdentifier(`data-${STYLE_DATA_ES}-${styleId}`),
-							t.StringLiteral('')					
-					))
-				}
+							t.StringLiteral('')
+						))
+					}
+				}	
 			}
 		}
 	}

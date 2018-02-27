@@ -4,7 +4,11 @@ import {
 } from '../utils/constant'
 
 export default postcss.plugin('postcss-selector', (options = {}) => {
-	const uniqueInfo = `[data-${STYLE_DATA_ES}-${options.styleId}]`
+	let uniqueInfo = `.${STYLE_DATA_ES}-${options.styleId}`
+	if (options.styleType === 'attribute') { 
+		uniqueInfo = `[data-${STYLE_DATA_ES}-${options.styleId}]`
+	}
+
 	return root => {
 		root.walkRules(rule => { 
 			//格式化选择器

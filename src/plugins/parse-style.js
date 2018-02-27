@@ -52,7 +52,7 @@ export const parse = (plugins, state) => {
 			
 			const jsxPlugins = [
 				..._plugins,
-				postcssSelector({ styleId }),
+				postcssSelector({ styleId, styleType: state.styleType }),
 				..._nextPlugins
 			]
 		

@@ -37,6 +37,7 @@ babel 配置
 {
   "plugins": [
     "es-style/babel",{
+      "type": "attribute", //默认是 `class`， 当前配置样式选择器是元素属性
       "imageOptions": {
         "dir":"images/",
         "limit": 5000
@@ -64,6 +65,7 @@ babel 配置
 {
   "plugins": [
     "es-style/babel",{
+      "type": "attribute", //默认是 `class`， 当前配置样式选择器是元素属性
       "imageOptions": {
         "path": "./dist",        
         "publicPath":"/",

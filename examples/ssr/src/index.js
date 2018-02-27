@@ -4,7 +4,7 @@ import './common.scss!'
 import './index.scss'
 
 import bg from '../images/1.jpg'
-
+import Home from './home'
 import svg from './a.svg'
 
 import bgSvg from '../images/1.svg'
@@ -54,8 +54,9 @@ export default class App extends React.Component {
 				<img src={bgSvg}/>
 				<h1 onClick={this.change}>{this.state.name}</h1>
 				<img src={bg} className="name"/>
-				<a className={true ? 'name' : 's'}>123</a>
+				<a className={true ? 'name' : 's'}>123</a>				
 				<es-style />
+				<Home/>
 			</section>
 		)	
 	}
