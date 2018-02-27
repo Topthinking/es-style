@@ -7,8 +7,8 @@ export default function flushToReact() {
   for (const [id, css] of mem) {
     arr.push(
       React.createElement('style', {
-        id: `__${id}`,
-        key: `__${id}`,
+        id: `${id}`,
+        key: `${id}`,
         dangerouslySetInnerHTML: {
           __html: css
         }
@@ -22,7 +22,7 @@ export function flushToHTML() {
   const mem = flush()
   let html = ''
   for (const [id, css] of mem) {
-    html += `<style id="__${id}">${css}</style>`
+    html += `<style id="${id}">${css}</style>`
   }
   return html
 }

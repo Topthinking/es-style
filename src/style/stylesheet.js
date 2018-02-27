@@ -16,7 +16,7 @@ export default class StyleSheet {
   ) {
     invariant(isString(name), '`name` must be a string')
     this._name = name
-    this._deletedRulePlaceholder = `#${name}-deleted-rule____{}`
+    this._deletedRulePlaceholder = `#${name}-deleted-rule__{}`
 
     invariant(
       typeof optimizeForSpeed === 'boolean',

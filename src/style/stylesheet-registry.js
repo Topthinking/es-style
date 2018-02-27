@@ -142,7 +142,7 @@ export default class StyleSheetRegistry {
    * Creates a function to compute and memoize dynamic selectors.
    */
   createComputeSelector(
-    selectoPlaceholderRegexp = /__es-style-dynamic-selector/g
+    selectoPlaceholderRegexp = /es-style-dynamic-selector/g
   ) {
     const cache = {}
     return function(id, css) {
@@ -174,16 +174,15 @@ export default class StyleSheetRegistry {
   /**
    * selectFromServer
    *
-   * Collects style tags from the document with id __es-XXX
+   * Collects style tags from the document with id es-XXX
    */
   selectFromServer() {
     const elements = Array.prototype.slice.call(
-      document.querySelectorAll('[id^="__es-"]')
+      document.querySelectorAll('[id^="es-"]')
     )
 
     return elements.reduce((acc, element) => {
-      const id = element.id.slice(2)
-      acc[id] = element
+      acc[element.id] = element
       return acc
     }, {})
   }

@@ -36,7 +36,7 @@ export default class App extends React.Component {
 	render() {
 		const icon = 'web_album_ic_lock'
 		return (
-			<section>
+			<section className="section" data-v>			
 				<Helmet>
 					<meta charSet="utf-8" />
 					<title>My Title</title>
@@ -55,7 +55,7 @@ export default class App extends React.Component {
 				<h1 onClick={this.change}>{this.state.name}</h1>
 				<img src={bg} className="name"/>
 				<a className={true ? 'name' : 's'}>123</a>
-				<es-style/>
+				<es-style />
 			</section>
 		)	
 	}

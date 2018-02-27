@@ -7,6 +7,7 @@ module.exports = (res, app) => {
   
   const _html = ReactDOMServer.renderToStaticMarkup(React.createElement(app))
   const style = flush()
+  
 
   const html = ReactDOMServer.renderToString(<Document
     html={_html}

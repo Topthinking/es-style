@@ -239,47 +239,20 @@ export default ({ types: t }) => {
 					}
 				}
 			},
-			//根据styleMap修改className，这里需要考虑多种情况
 			JSXOpeningElement(path, state) {
-				//拿到当前的JSX对象的访问路径
-        const el = path.node;
-				const attrs = el.attributes
-				const styleId = state.styleId
 
-				let isExist = false
-        //获取对象属性,添加className
-        if(attrs.length){
-					attrs.map(item => {
-						if (
-							t.isJSXAttribute(item) && 
-							t.isJSXIdentifier(item.name) && 
-							item.name.name === 'className' &&
-							styleId !== 0
-						) {
-							//值为{}
-							if(t.isJSXExpressionContainer(item.value)){
-								item.value = t.JSXExpressionContainer(
-									concat(t.StringLiteral(STYLE_DATA_ES + '-' + styleId + ' '), item.value.expression)
-								)
-							}
-
-							//值是字符串
-							if (t.isStringLiteral(item.value)) { 
-								item.value = t.JSXExpressionContainer(
-									concat(t.StringLiteral(STYLE_DATA_ES + '-' + styleId + ' '), item.value)	
-								)
-							}
-							
-							isExist = true
-						}
-          })
+				if (path.node.name.name.charAt(0) == path.node.name.name.charAt(0).toUpperCase()) { 
+					return 
 				}
 
-				if (!isExist && styleId !== 0) { 
+				//拿到当前的JSX对象的访问路径
+				const styleId = state.styleId
+
+				if (styleId !== 0) { 
 					path.node.attributes.push(t.JSXAttribute(
-						t.JSXIdentifier('className'),
-						t.StringLiteral(STYLE_DATA_ES + '-' + styleId)						
-					)) 
+							t.JSXIdentifier(`data-${STYLE_DATA_ES}-${styleId}`),
+							t.StringLiteral('')					
+					))
 				}
 			}
 		}
