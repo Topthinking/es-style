@@ -21,7 +21,8 @@ module.exports = {
 					presets: ["es2015", "react", "stage-0"],
 					plugins: [
 						[							
-							require('../../../babel').default,{
+							require('../../../babel').default, {
+								"type": "attribute",
 								"imageOptions": {
 									'publicPath': '/',
 									'dir':'images/',
