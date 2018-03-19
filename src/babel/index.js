@@ -165,6 +165,11 @@ export default ({ types: t }) => {
 					state.css = css
 				}
 
+				//JSXElement是一个对象
+				if (t.isJSXMemberExpression(path.node.openingElement.name)) { 
+					return
+				}
+
 				const name = path.node.openingElement.name.name
 				
 				if (
@@ -246,6 +251,11 @@ export default ({ types: t }) => {
 				}
 			},
 			JSXOpeningElement(path, state) {
+
+				//JSXElement是一个对象
+				if (t.isJSXMemberExpression(path.node.name)) { 
+					return
+				}
 
 				if (path.node.name.name.charAt(0) == path.node.name.name.charAt(0).toUpperCase()) { 
 					return 
