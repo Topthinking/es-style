@@ -51,7 +51,7 @@ export default (url, reference, imageOptions) => {
 			//文件名称
 			_filename = _filename + '_' + md5(data).substr(0,7) + '.' + ext
 
-			if (/production/.test(process.env.NODE_ENV)) {
+			if (/production|test/.test(process.env.NODE_ENV)) {
 				//发布
 				new_src = [publicPath, dir, _filename].join("")
 				fs.copySync(src, join(path, dir, _filename))				
