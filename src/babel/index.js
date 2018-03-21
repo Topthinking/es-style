@@ -260,12 +260,15 @@ export default ({ types: t }) => {
 
 				if (attrs.length) {					
 					attrs.map(item => { 
-						if (item.name.name === 'className') { 
+						if (
+							t.isJSXAttribute(item) &&
+							t.isJSXIdentifier(item.name) &&
+							item.name.name === 'className'
+						) { 
 							hasClassName = true
 						}
 					})
 				}
-
 
 				//JSXElement是一个对象
 				if (t.isJSXMemberExpression(path.node.name) && !hasClassName) { 
