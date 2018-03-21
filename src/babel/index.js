@@ -252,19 +252,29 @@ export default ({ types: t }) => {
 			},
 			JSXOpeningElement(path, state) {
 
-				//JSXElement是一个对象
-				if (t.isJSXMemberExpression(path.node.name)) { 
-					return
-				}
-
-				if (path.node.name.name.charAt(0) == path.node.name.name.charAt(0).toUpperCase()) { 
-					return 
-				}
-
 				//拿到当前的JSX对象的访问路径
 				const el = path.node;
 				const attrs = el.attributes
 				const styleId = state.styleId
+				let hasClassName = false
+
+				if (attrs.length) {					
+					attrs.map(item => { 
+						if (item.name.name === 'className') { 
+							hasClassName = true
+						}
+					})
+				}
+
+
+				//JSXElement是一个对象
+				if (t.isJSXMemberExpression(path.node.name) && !hasClassName) { 
+					return
+				}
+
+				if (path.node.name.name.charAt(0) == path.node.name.name.charAt(0).toUpperCase() && !hasClassName) { 
+					return 
+				}			
 
 				if (state.styleType === 'class') {
 					let isExist = false

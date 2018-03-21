@@ -56,7 +56,7 @@ export default class App extends React.Component {
 				<img src={bg} className="name"/>
 				<a className={true ? 'name' : 's'}>123</a>				
 				<es-style />
-				<Home/>
+				<Home className="hello"/>
 			</section>
 		)	
 	}

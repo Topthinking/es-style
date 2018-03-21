@@ -26,7 +26,6 @@ module.exports = {
 					plugins: [
 						[							
 							require('../../../babel').default, {
-								"type": "attribute",
 								"imageOptions": {
 									'publicPath': '/',
 									'dir':'images/',

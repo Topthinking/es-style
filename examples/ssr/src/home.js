@@ -1,8 +1,7 @@
 import React from 'react'
-import './index.scss'
-export default () => (
+export default ({ className }) => (
 	<div>
-		<span className="name">home</span>
+		<span className={`name ${className}`}>home</span>
 		<es-style/>
 	</div>
 
