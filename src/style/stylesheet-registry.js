@@ -124,13 +124,13 @@ export default class StyleSheetRegistry {
     const cache = {}
     return function(baseId, props) {
       if (!props) {
-        return `es-${baseId}`
+        return `e-${baseId}`
       }
       const propsToString = String(props)
       const key = baseId + propsToString
       // return `es-${hashString(`${baseId}-${propsToString}`)}`
       if (!cache[key]) {
-        cache[key] = `es-${hashString(`${baseId}-${propsToString}`)}`
+        cache[key] = `e-${hashString(`${baseId}-${propsToString}`)}`
       }
       return cache[key]
     }
@@ -178,7 +178,7 @@ export default class StyleSheetRegistry {
    */
   selectFromServer() {
     const elements = Array.prototype.slice.call(
-      document.querySelectorAll('[id^="es-"]')
+      document.querySelectorAll('[id^="e-"]')
     )
 
     return elements.reduce((acc, element) => {
