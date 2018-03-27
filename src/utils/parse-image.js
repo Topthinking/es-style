@@ -28,45 +28,50 @@ export default (url, reference, imageOptions) => {
 		const mod = requireResolve(url, resolve(reference))
 		if (!mod || !mod.src) {
 			console.error(`Path '${url}' could not be found for '${reference}'`);
-		}
-		const src = mod.src
-		const stat = fs.statSync(src)
-		const data = fs.readFileSync(src)							
-
-		if (limit != null && stat.size < limit) {
-			//转成base64
-			const mimetype = mime.getType(src)								
-			new_src = `data:${mimetype || ''};base64,${data.toString('base64')}`
+			if (/production|test/.test(process.env.NODE_ENV)) { 
+				process.exit(1)
+			}
+			new_src = `/error.png?error=Path-${url}-could-not-be-found-for-${reference}`
 		} else {
-			//拷贝图片到输出目录
-			/**
-			 * /user/a
-			 * /user/a/dist
-			 * imageName.ext
-			 */
-			const filename = basename(src)
-			let _filename = filename.split('.')
-			let ext = _filename.pop() 
-			_filename = _filename.join('.')
-			//文件名称
-			_filename = _filename + '_' + md5(data).substr(0,7) + '.' + ext
+			const src = mod.src
+			const stat = fs.statSync(src)
+			const data = fs.readFileSync(src)
 
-			if (/production|test/.test(process.env.NODE_ENV)) {
-				//发布
-				new_src = [publicPath, dir, _filename].join("")
-				fs.copySync(src, join(path, dir, _filename))				
-			} else { 
-				//开发
-				const new_dir = join('/static', dir)
+			if (limit != null && stat.size < limit) {
+				//转成base64
+				const mimetype = mime.getType(src)
+				new_src = `data:${mimetype || ''};base64,${data.toString('base64')}`
+			} else {
+				//拷贝图片到输出目录
+				/**
+				 * /user/a
+				 * /user/a/dist
+				 * imageName.ext
+				 */
+				const filename = basename(src)
+				let _filename = filename.split('.')
+				let ext = _filename.pop()
+				_filename = _filename.join('.')
+				//文件名称
+				_filename = _filename + '_' + md5(data).substr(0, 7) + '.' + ext
+
+				if (/production|test/.test(process.env.NODE_ENV)) {
+					//发布
+					new_src = [publicPath, dir, _filename].join("")
+					fs.copySync(src, join(path, dir, _filename))
+				} else {
+					//开发
+					const new_dir = join('/static', dir)
 				
-				if (!memoryFs.existsSync(new_dir)) { 
-					memoryFs.mkdirpSync(new_dir)
-				}
-				new_src = join(new_dir, _filename)
+					if (!memoryFs.existsSync(new_dir)) {
+						memoryFs.mkdirpSync(new_dir)
+					}
+					new_src = join(new_dir, _filename)
 
-				memoryFs.writeFileSync(new_src, data)	
-			}							
-		}
+					memoryFs.writeFileSync(new_src, data)
+				}
+			}
+		}	
 	}	
 
 	return new_src
