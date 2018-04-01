@@ -11,6 +11,13 @@ export default postcss.plugin('postcss-selector', (options = {}) => {
 
 	return root => {
 		root.walkRules(rule => { 
+			//忽略keyframs内的过渡选择器
+			if (rule.parent.type === 'atrule') {
+				if(rule.parent.name === 'keyframes'){
+					return 
+				}
+			}
+
 			//格式化选择器
 			if (/:(:)?/.test(rule.selector)) {
 				//存在伪类,针对最后一个进行处理
@@ -27,12 +34,12 @@ export default postcss.plugin('postcss-selector', (options = {}) => {
 
 					rule.selector = _selector.join(" ")
 
-				} else {
-					rule.selector = rule.selector + uniqueInfo
+					return 
 				}
-			} else {
-				rule.selector = rule.selector + uniqueInfo
 			}
+
+			rule.selector = rule.selector + uniqueInfo
+			
 		})
 		
 	}
