@@ -14,7 +14,8 @@ export default (url, reference, imageOptions) => {
 		limit = null,
 		dir = '',
 		path = join(process.cwd(), 'dist'),
-		publicPath = '/'
+		publicPath = '/',
+		fileSystem = 'memory'	//图片资源文件类型  file 文本文件类型  memory 内存文件类型
 	} = imageOptions
 	
 	if (Object.keys(watchData).length) { 
@@ -55,17 +56,21 @@ export default (url, reference, imageOptions) => {
 				//文件名称
 				_filename = _filename + '_' + md5(data).substr(0, 7) + '.' + ext
 
-				if (/production|test/.test(process.env.NODE_ENV)) {
-					//发布
+				//图片资源文件类型
+				//file 文本文件类型
+				//memory 内存文件类型
+				if (fileSystem === 'file') {					
 					new_src = [publicPath, dir, _filename].join("")
 					fs.copySync(src, join(path, dir, _filename))
-				} else {
-					//开发
-					const new_dir = join('/static', dir)
+				}
 				
+				if (fileSystem === 'memory') {
+					const new_dir = join('/static', dir)
+					
 					if (!memoryFs.existsSync(new_dir)) {
 						memoryFs.mkdirpSync(new_dir)
 					}
+					
 					new_src = join(new_dir, _filename)
 
 					memoryFs.writeFileSync(new_src, data)
