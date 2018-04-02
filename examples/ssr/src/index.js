@@ -1,7 +1,7 @@
 import React from 'react'
 import { Helmet } from "react-helmet"
 import './common.scss!'
-import './index.scss!'
+import './index.scss'
 
 import bg from '../images/1.jpg'
 import Home from './home'

@@ -1,6 +1,12 @@
 @import '../styles/mixin.scss';
 @import './mixin.scss';
 
+@media screen and (max-width:500px){
+	h1{
+		font-size: 60px !important;
+	}
+}
+
 section{
 h1{
 	color:salmon;
@@ -67,3 +73,4 @@ z-index: 21212;
 .boxs {
 	animation-name: fadeOutName;
 }
+
