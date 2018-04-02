@@ -48,6 +48,13 @@ z-index: 21212;
 	}
 }
 
+
+.box {
+	z-index: 123;
+	animation: fadeOut;
+}
+
+
 @keyframes fadeOutName {
 	from {
 			opacity: 1;
@@ -55,11 +62,6 @@ z-index: 21212;
 	to {
 			opacity: 0;
 	}
-}
-
-.box {
-	z-index: 123;
-	animation-name: fadeOut;
 }
 
 .boxs {
