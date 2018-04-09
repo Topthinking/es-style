@@ -89,6 +89,8 @@ const compiler = watch(webpack(webpackConfig), app)
 
     发布的时候，path和publicPath的配置和webpack的output里面的配置项一致
 
+    css导出到文件中的目录是根据path来的，在path根目录下，文件名称是main.css
+
 
 ## 项目引用
 ```jsx
