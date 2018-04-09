@@ -1,10 +1,11 @@
 import { loopWhile } from 'deasync'
 import * as t from 'babel-types'
-import { resolve } from 'path'
+import { resolve, join } from 'path'
 import requireResolve from 'require-resolve'
 import { isObject, shouldBeParseStyle, shouldBeParseImage, hashString } from '../utils'
 import parseImage from "../utils/parse-image"
 import fs from '../watch/fs'
+import fsExtra from 'fs-extra'
 import { content, parse } from '../plugins/parse-style'
 
 import { 
@@ -16,40 +17,73 @@ import {
 
 const concat = (a, b) => t.binaryExpression('+', a, b)
 
+let ComponentStyles = []
+
 export default ({ types: t }) => {
 	return {
 		visitor: {
 			//全局import es-style
 			Program: {
 				enter(path, state) {
-					//插入import ‘es-style‘
-					if (path.scope.hasBinding(STYLE_COMPONENT)) {
-						return
+					let position = state && state.opts && state.opts.position || 'inline'
+					
+					if (typeof state.styles === 'undefined') {
+						state.styles = {
+							global: [],
+							jsx: []
+						}
 					}
 
-					path.node.body.unshift(t.importDeclaration(
-						[t.importDefaultSpecifier(t.identifier(STYLE_COMPONENT))],
-						t.stringLiteral('es-style')
-					))
-					
-					path.traverse({
-						JSXOpeningElement(path) {
-							if (path.node.name.name === 'es-style' || path.node.name.name === 'es.style') { 
-								state.hasEsStyleElement = true								
-							}
+					//插入import ‘es-style‘
+					if (position === 'inline') {
+						if (path.scope.hasBinding(STYLE_COMPONENT)) {
+							return
 						}
-					})
+
+						path.node.body.unshift(t.importDeclaration(
+							[t.importDefaultSpecifier(t.identifier(STYLE_COMPONENT))],
+							t.stringLiteral('es-style')
+						))
 					
+						path.traverse({
+							JSXOpeningElement(path) {
+								if (path.node.name.name === 'es-style' || path.node.name.name === 'es.style') {
+									state.hasEsStyleElement = true
+								}
+							}
+						})
+					}					
 				},
-				exit(path, state) {
-					//写信息到内存文件中
-					let map = state.styleSourceMap
-					if (fs.existsSync('/es-style/watch.json')) {
-						map = fs.readFileSync('/es-style/watch.json', 'utf-8')
-						map = JSON.parse(map)
-						map = Object.assign(map, state.styleSourceMap)
-					}
-					fs.writeFileSync('/es-style/watch.json', JSON.stringify(map))
+				exit(p, state) {
+					let position = state && state.opts && state.opts.position || 'inline'
+
+					if (position === 'external') {
+						const reference = state && state.file && state.file.opts.filename
+						const write = state && state.opts && state.opts.write || true
+						
+						let { path } = state && state.opts && state.opts.imageOptions || { path: join(process.cwd(), 'style') }
+						path = path || join(process.cwd(), 'style')
+						
+						if (ComponentStyles.indexOf(reference) === -1 && state.css) {
+							ComponentStyles.push(reference)
+							if (write) {
+								if (!fsExtra.existsSync(path)) {
+									fsExtra.mkdirpSync(path)
+								}
+								fsExtra.appendFileSync(join(path, 'main.css'), state.css)
+							}	
+						}
+					} else {
+						//写信息到内存文件中
+						let map = state.styleSourceMap
+						if (fs.existsSync('/es-style/watch.json')) {
+							map = fs.readFileSync('/es-style/watch.json', 'utf-8')
+							map = JSON.parse(map)
+							map = Object.assign(map, state.styleSourceMap)
+						} else {
+							fs.writeFileSync('/es-style/watch.json', JSON.stringify(map))
+						}
+					}	
 				}
 			},
 			//检测import内容,同时通过sass获取style内容
@@ -58,18 +92,12 @@ export default ({ types: t }) => {
 				let reference = state && state.file && state.file.opts.filename
 				let imageOptions = state && state.opts && state.opts.imageOptions
 				let type = state && state.opts && state.opts.type	
+				const write = state && state.opts && state.opts.write || true
 				
 				state.styleType = 'class'
 				if (['class', 'attribute'].indexOf(type) !== -1) { 
 					state.styleType = type
-				}
-
-				if (typeof state.styles === 'undefined') {
-					state.styles = {
-						global: [],
-						jsx: []
-					}
-				}
+				}				
 				
 				if (typeof state.styleSourceMap === 'undefined') {
 					state.styleSourceMap = {}
@@ -84,6 +112,7 @@ export default ({ types: t }) => {
 
 				//引用样式
 				if (shouldBeParseStyle(givenPath)) {
+					
 					path.node.specifiers = []
 
 					const mod = requireResolve(givenPath, resolve(reference))
@@ -120,7 +149,7 @@ export default ({ types: t }) => {
 						}
 						
 						const id = path.node.specifiers[0].local.name
-						const content = parseImage(givenPath, reference, imageOptions)
+						const content = parseImage(givenPath, reference, imageOptions, write)
 						const variable = t.variableDeclarator(t.identifier(id), t.stringLiteral(content))
 						
 						path.replaceWith({
@@ -177,7 +206,16 @@ export default ({ types: t }) => {
 					name !== STYLE_COMPONENT && 
 					name.charAt(0) !== name.charAt(0).toUpperCase() &&
 					name !== 'style'
-				) {					
+				) {	
+					let position = state && state.opts && state.opts.position || 'inline'
+
+					if (position === 'external') {
+						if (name === 'es-style' || name === 'es.style') { 
+							path.remove()
+						}
+						return
+					}	
+
 					if (name === 'es-style' || name === 'es.style') {
 						if (state.hasEsStyle) {
 							path.remove()
@@ -277,8 +315,8 @@ export default ({ types: t }) => {
 
 				if (path.node.name.name.charAt(0) == path.node.name.name.charAt(0).toUpperCase() && !hasClassName) { 
 					return 
-				}			
-
+				}
+				
 				if (state.styleType === 'class') {
 					let isExist = false
 					//获取对象属性,添加className

@@ -14,7 +14,8 @@ export const parse = (plugins, state) => {
 	const _plugins = []
 	let reference = state && state.file && state.file.opts.filename
 	let imageOptions = state && state.opts && state.opts.imageOptions
-	
+	const write = state && state.opts && state.opts.write || true
+
 	if (typeof imageOptions === 'undefined') { 
 		imageOptions = {}
 	}
@@ -28,7 +29,8 @@ export const parse = (plugins, state) => {
 	const _nextPlugins = [
 		postcssImages({
 			reference,
-			imageOptions
+			imageOptions,
+			write
 		}),
 		require('cssnano')({
 			autoprefixer: false,

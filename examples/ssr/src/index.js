@@ -4,7 +4,7 @@ import './common.scss!'
 import './index.scss'
 
 import bg from '../images/1.jpg'
-import Home from './home'
+import Home from '../components/home'
 import svg from './a.svg'
 
 import bgSvg from '../images/1.svg'

@@ -60,13 +60,16 @@ const compiler = watch(webpack(webpackConfig), app)
 
 ## webpack - 发布
 
-babel 配置
+#### babel 配置
 ```json
 {
   "plugins": [
     "es-style/babel",{
       "type": "attribute", //默认是 `class`， 当前配置样式选择器是元素属性
+      "position":"external", //样式存放位置，inline内联（head头中），external外联（文件中），默认内联
+      "write":true, //当前编译过程是否写文件(图片资源和css资源），原因是编译node端代码不需要写静态资源文件，加快编译过程,默认是true可写
       "imageOptions": {
+        "fileSystem": "file", //图片资源存放文件类型，默认存放在内存中（memory），如果指定file，那么就存放到指定目录的硬盘上
         "path": "./dist",        
         "publicPath":"/",
         "dir":"images/",
@@ -76,11 +79,19 @@ babel 配置
   ]
 }
 ```
-⚠️ 发布的时候，`path`和`publicPath`的配置和`webpack`的`output`里面的配置项一致
+#### ☝️  建议
+    
+    发布的时候[position]使用外联(external)，开发的时候使用内联(inline)
+
+    发布的时候[fileSystem]使用文本文件(file)，开发的时候使用内存文件(memory)
+
+#### ⚠️ ️ 注意
+
+    发布的时候，path和publicPath的配置和webpack的output里面的配置项一致
 
 
 ## 项目引用
-```js
+```jsx
 
 //组件内生效 改变即触发热更新
 import './style/es-style.scss'

@@ -6,7 +6,7 @@ import md5 from 'md5'
 import { resolve, basename, join } from 'path'
 import { isObject } from './'
 
-export default (url, reference, imageOptions) => {
+export default (url, reference, imageOptions, write = true) => {
 
 	const watchData = get()
 
@@ -61,7 +61,10 @@ export default (url, reference, imageOptions) => {
 				//memory 内存文件类型
 				if (fileSystem === 'file') {					
 					new_src = [publicPath, dir, _filename].join("")
-					fs.copySync(src, join(path, dir, _filename))
+					if (write) {
+						//如果当前可写，那么就将图片资源输出
+						fs.copySync(src, join(path, dir, _filename))
+					}	
 				}
 				
 				if (fileSystem === 'memory') {
