@@ -2,3 +2,4 @@ node_modules
 dist
 publish
 test.sh
+.es-style

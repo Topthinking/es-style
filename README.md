@@ -92,6 +92,18 @@ const compiler = watch(webpack(webpackConfig), app)
     css导出到文件中的目录是根据path来的，在path根目录下，文件名称是main.css
 
 
+#### 🍡  雪碧图
+  
+    版本0.1.8后支持，如果需要雪碧图，那么在当前css文件的头部添加如下注释
+    
+    那么该css文件中的所有图片将集成到一张大图上，同时打包的图片会存放在目录为.es-style的文件中
+
+    所有git要忽略.es-style目录
+
+```css
+/*sprite*/
+```
+
 ## 项目引用
 ```jsx
 
@@ -117,3 +129,5 @@ export default () => (
 2. 目前对于全局的`scss`暂时还没有去重处理，所以尽量只引用一份全局的样式文件
 
 3. `es-style`不支持`happypack`,使用会导致图片资源丢失
+
+4. `.gitignore`添加`.es-style`，忽略雪碧图生成的图片

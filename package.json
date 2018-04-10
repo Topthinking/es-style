@@ -1,6 +1,6 @@
 {
   "name": "es-style",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "license": "MIT",
   "description": "easy stylesheet style",
   "files": [
@@ -77,8 +77,6 @@
     "html-webpack-plugin": "^2.30.1",
     "jest": "^22.4.2",
     "node-notifier": "^5.2.1",
-    "postcss-assets": "^5.0.0",
-    "postcss-sprites": "^4.2.1",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "react-helmet": "^5.2.0",
@@ -94,8 +92,8 @@
   },
   "dependencies": {
     "autoprefixer": "^7.2.5",
-    "cssnano": "^3.10.0",
     "chokidar": "^2.0.0",
+    "cssnano": "^3.10.0",
     "deasync": "^0.1.12",
     "fs-extra": "^5.0.0",
     "md5": "^2.2.1",
@@ -105,6 +103,8 @@
     "postcss": "^6.0.16",
     "react": "^16.2.0",
     "require-resolve": "^0.0.2",
-    "string-hash": "^1.1.3"
+    "spritesmith": "^3.3.0",
+    "string-hash": "^1.1.3",
+    "svg-sprite": "^1.4.0"
   }
 }

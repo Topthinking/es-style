@@ -1,76 +1,27 @@
-@import '../styles/mixin.scss';
-@import './mixin.scss';
+/*sprite*/
+.container{
+	width: 300px;
+	height: 200px;
+	border:1px solid red;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-image: url(./bg.png);
+	background-repeat: no-repeat;
+	color: sandybrown;
 
-@media screen and (max-width:500px){
 	h1{
-		font-size: 60px !important;
+		background-color: red;
+		padding: 5px 20px;
+		border-radius: 5px;
 	}
 }
 
-section{
-h1{
-	color:salmon;
-	font-size: 20px;
-	background: url('./cat4.png') no-repeat, url(./cat4.png) no-repeat;
-	background-size: 100%;
-	height: 100px;
-	-webkit-box-orient: vertical; 
-}
+.container:hover{
+	background-image: url(./bg.jpg);
 }
 
-img{
-	@include wh(400px,400px);
+.container h1:hover{
+	background: url(./bg.svg) repeat;
+	color:red;
 }
-
-.name::after{
-	content: '\2022\2022';
-	@include c(red);
-}
-
-.svgIcon{
-	display: inline-block;
-	-moz-border-radius: 10px;
-	border-radius: 10px;
-	overflow: hidden;
-text-overflow: ellipsis; //
-display: -webkit-box;
--webkit-box-orient: vertical; //
--webkit-line-clamp: 2;
-text-overflow: -o-ellipsis-lastline;
-
-max-height: 40px;
-line-height: 1.4;
-color: #333;
-font-size: 14px;
-z-index: 21212;
-}
-
-@keyframes fadeOut {
-	from {
-			opacity: 1;
-	}
-	to {
-			opacity: 0;
-	}
-}
-
-
-.box {
-	z-index: 123;
-	animation: fadeOut;
-}
-
-
-@keyframes fadeOutName {
-	from {
-			opacity: 1;
-	}
-	to {
-			opacity: 0;
-	}
-}
-
-.boxs {
-	animation-name: fadeOutName;
-}
-

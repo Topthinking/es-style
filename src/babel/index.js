@@ -6,7 +6,7 @@ import { isObject, shouldBeParseStyle, shouldBeParseImage, hashString } from '..
 import parseImage from "../utils/parse-image"
 import fs from '../watch/fs'
 import fsExtra from 'fs-extra'
-import { content, parse } from '../plugins/parse-style'
+import { content, parse } from './parse-style'
 
 import { 
 	STYLE_COMPONENT,
@@ -133,9 +133,15 @@ export default ({ types: t }) => {
 
 					const css = content(givenPath, reference)
 					if (globalStyle) {
-						state.styles.global.push(css)
+						state.styles.global.push({
+							from: givenPath,
+							css
+						})
 					} else {
-						state.styles.jsx.push(css)
+						state.styles.jsx.push({
+							from: givenPath,
+							css
+						})
 					}
 					path.remove()
 				}
@@ -215,7 +221,8 @@ export default ({ types: t }) => {
 						}
 						return
 					}	
-
+			
+					
 					if (name === 'es-style' || name === 'es.style') {
 						if (state.hasEsStyle) {
 							path.remove()
@@ -241,15 +248,14 @@ export default ({ types: t }) => {
 									)
 								}
 
-								path.replaceWith(
-									t.jSXElement(
-										t.jSXOpeningElement(t.jSXIdentifier(STYLE_COMPONENT), attributes, true),
-										null,
-										[]
-									)
+								path.replaceWith(t.jSXElement(
+									t.jSXOpeningElement(t.jSXIdentifier(STYLE_COMPONENT), attributes, true), null, []
 								)
+								)
+							} else { 
+								path.remove()
 							}
-						}	
+						}
 					} else {
 						if (state.hasJsxStyle) {
 							return

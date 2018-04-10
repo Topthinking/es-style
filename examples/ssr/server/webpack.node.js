@@ -25,8 +25,7 @@ module.exports = {
 					presets: ["es2015", "react", "stage-0"],
 					plugins: [
 						[							
-							require('../../../babel').default, {
-								"position": "external",							
+							require('../../../babel').default, {						
 								"imageOptions": {
 									'publicPath': '/',
 									'dir':'images',

@@ -3,13 +3,34 @@ import path from 'path'
 import sass from 'node-sass'
 import { hashString } from '../utils'
 
-import postcssSelector from './postcss-selector'
-import postcssImages from './postcss-images'
+import postcssSelector from '../plugins/postcss-selector'
+import postcssImages from '../plugins/postcss-images'
+import postcssSprites from '../plugins/postcss-sprites'
 
-//node-sass获取style
+//通过node-sass解析并获取style字符串
 export const content = (givenPath) => sass.renderSync({ file: givenPath }).css.toString()
 
-//postcss plugins
+//处理雪碧图
+const handleStyleSprites = (styles) => { 
+	return new Promise(async (resolve, reject) => {
+		const style = []
+		if (styles.length) {
+			styles.map(async (item, index) => {
+				const { css } = await postcss([postcssSprites({
+					spritePath: '.es-style'
+				})]).process(item.css, { from: item.from })
+				style.push(css)				
+				if (index === styles.length - 1) {
+					resolve(style.join(''))
+				}
+			})
+		} else { 
+			resolve(style.join(''))
+		}
+	})
+}
+
+//将css字符串经过postcss插件进行二次操作
 export const parse = (plugins, state) => {
 	const _plugins = []
 	let reference = state && state.file && state.file.opts.filename
@@ -26,7 +47,7 @@ export const parse = (plugins, state) => {
 		})			
 	)
 	
-	const _nextPlugins = [
+	const _nextPlugins = [		
 		postcssImages({
 			reference,
 			imageOptions,
@@ -38,14 +59,13 @@ export const parse = (plugins, state) => {
 			zindex: false,
 			minifyGradients: false
 		})
-	]	
+	]		
 
 	return new Promise(async (resolve, reject) => {
 		try {
-			let result,
-				globalStyle = state.styles.global.join(''),
-				jsxStyle = state.styles.jsx.join(''),
-				styleId = globalStyle === '' && jsxStyle === '' ? 0 : hashString(globalStyle + jsxStyle)
+			let globalStyle = await handleStyleSprites(state.styles.global),
+					jsxStyle = await handleStyleSprites(state.styles.jsx),
+					styleId = globalStyle === '' && jsxStyle === '' ? 0 : hashString(globalStyle + jsxStyle)
 				
 			const globalPlugins = [
 				..._plugins,
