@@ -76,13 +76,14 @@ export default ({ types: t }) => {
 					} else {
 						//写信息到内存文件中
 						let map = state.styleSourceMap
+						
 						if (fs.existsSync('/es-style/watch.json')) {
 							map = fs.readFileSync('/es-style/watch.json', 'utf-8')
 							map = JSON.parse(map)
 							map = Object.assign(map, state.styleSourceMap)
-						} else {
-							fs.writeFileSync('/es-style/watch.json', JSON.stringify(map))
 						}
+
+						fs.writeFileSync('/es-style/watch.json', JSON.stringify(map))
 					}	
 				}
 			},

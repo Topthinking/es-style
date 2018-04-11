@@ -55,7 +55,10 @@ const watch = require('es-style/watch')
 const webpack = require('webpack')
 const webpackConfig = require('./webpack.dev.config')
 const app = express()
-const compiler = watch(webpack(webpackConfig), app)
+const compiler = watch(webpack(webpackConfig), app, ()=>{
+  //compiler.plugin('done',callback)
+  //这里主要编写上面钩子方法的回调实现，因为watch方法中集成了done的使用，防止出现冲突
+})
 ```
 
 ## webpack - 发布
@@ -128,6 +131,6 @@ export default () => (
 
 2. 目前对于全局的`scss`暂时还没有去重处理，所以尽量只引用一份全局的样式文件
 
-3. `es-style`不支持`happypack`,使用会导致图片资源丢失
+3. `es-style`不支持`happypack`,使用会导致图片资源丢失,由于使用的是内存文件系统，使用它会导致在每个打开的线程中创建文件，产生不可控的影响
 
 4. `.gitignore`添加`.es-style`，忽略雪碧图生成的图片

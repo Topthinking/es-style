@@ -13,19 +13,21 @@ export const content = (givenPath) => sass.renderSync({ file: givenPath }).css.t
 //处理雪碧图
 const handleStyleSprites = (styles) => { 
 	return new Promise(async (resolve, reject) => {
-		const style = []
 		if (styles.length) {
-			styles.map(async (item, index) => {
+			const style = await Promise.all(styles.map(async (item, index) => {
 				const { css } = await postcss([postcssSprites({
-					spritePath: '.es-style'
+					spritePath: `.es-style`,
+					hooks: {
+						onSaveSpritesheet: (opts, { extension, image }) => { 							
+							return path.join(opts.spritePath, ['sprite_' + hashString(image.toString()), extension].join('.'));
+						}
+					}
 				})]).process(item.css, { from: item.from })
-				style.push(css)				
-				if (index === styles.length - 1) {
-					resolve(style.join(''))
-				}
-			})
-		} else { 
+				return css
+			}))
 			resolve(style.join(''))
+		} else { 
+			resolve('')
 		}
 	})
 }

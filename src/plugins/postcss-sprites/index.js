@@ -20,11 +20,17 @@ import {
  */
 export default postcss.plugin('postcss-sprites', (options = {}) => {
 	return (css, result) => {
-
-		if(css.nodes[0].type !== 'comment' &&css.nodes[0].text !== 'sprite'){
-			return 
+		
+		if (css.nodes.length) {
+			if (css.nodes[0].type !== 'comment') {
+				return
+			} else { 
+				if (css.nodes[0].text !== 'sprite') { 
+					return 
+				}
+			}
 		}
-
+		
 		// Extend defaults
 		const opts = _.merge({}, defaults, options);
 
