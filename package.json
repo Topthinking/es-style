@@ -1,6 +1,6 @@
 {
   "name": "es-style",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "license": "MIT",
   "description": "easy stylesheet style",
   "files": [
@@ -93,7 +93,7 @@
   "dependencies": {
     "autoprefixer": "^7.2.5",
     "chokidar": "^2.0.0",
-    "cssnano": "^3.10.0",
+    "cssnano": "^4.0.0-rc.2",
     "deasync": "^0.1.12",
     "fs-extra": "^5.0.0",
     "md5": "^2.2.1",
