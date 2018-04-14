@@ -55,6 +55,11 @@ export default ({ types: t }) => {
 					}					
 				},
 				exit(p, state) {
+
+					if (state.styles.global.length === 0 && state.styles.jsx.length === 0) { 
+						return 
+					}
+
 					let position = state && state.opts && state.opts.position || 'inline'
 
 					if (position === 'external') {
@@ -94,11 +99,12 @@ export default ({ types: t }) => {
 				let imageOptions = state && state.opts && state.opts.imageOptions
 				let type = state && state.opts && state.opts.type	
 				const write = state && state.opts && state.opts.write || true
-				
+
 				state.styleType = 'class'
 				if (['class', 'attribute'].indexOf(type) !== -1) { 
 					state.styleType = type
-				}				
+				}
+								
 				
 				if (typeof state.styleSourceMap === 'undefined') {
 					state.styleSourceMap = {}
@@ -158,7 +164,7 @@ export default ({ types: t }) => {
 						const id = path.node.specifiers[0].local.name
 						const content = parseImage(givenPath, reference, imageOptions, write)
 						const variable = t.variableDeclarator(t.identifier(id), t.stringLiteral(content))
-						
+
 						path.replaceWith({
 							type: 'VariableDeclaration',
 							kind: 'const',
