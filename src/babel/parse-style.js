@@ -1,6 +1,8 @@
 import postcss from 'postcss'
 import path from 'path'
 import sass from 'node-sass'
+import CleanCSS from 'clean-css'
+
 import { hashString } from '../utils'
 
 import postcssSelector from '../plugins/postcss-selector'
@@ -10,22 +12,32 @@ import postcssSprites from '../plugins/postcss-sprites'
 //通过node-sass解析并获取style字符串
 export const content = (givenPath) => sass.renderSync({ file: givenPath }).css.toString()
 
-//处理雪碧图
-const handleStyleSprites = (styles) => { 
-	return new Promise(async (resolve, reject) => {
+//postcss批量处理
+const handlePostcss = (styles, plugins) => { 
+	return new Promise(async (resolve, reject) => {							
 		if (styles.length) {
-			const style = await Promise.all(styles.map(async (item, index) => {
-				const { css } = await postcss([postcssSprites({
-					spritePath: `.es-style`,
-					hooks: {
-						onSaveSpritesheet: (opts, { extension, image }) => { 							
-							return path.join(opts.spritePath, ['sprite_' + hashString(image.toString()), extension].join('.'));
-						}
-					}
-				})]).process(item.css, { from: item.from })
-				return css
-			}))
-			resolve(style.join(''))
+			try {
+				const style = await Promise.all(styles.map(async (item, index) => {
+						//解析css样式
+						const { css } = await postcss([
+							postcssSprites({
+								spritePath: `.es-style`,
+								hooks: {
+									onSaveSpritesheet: (opts, { extension, image }) => { 							
+										return path.join(opts.spritePath, ['sprite_' + hashString(image.toString()), extension].join('.'));
+									}
+								}
+							}),
+							...plugins
+						]).process(item.css, { from: item.from })
+						//压缩css文件
+						const output = new CleanCSS({}).minify(css);
+						return output.styles
+					}))
+					resolve(style.join(''))
+				} catch (error) {
+					reject(error)	
+				}			
 		} else { 
 			resolve('')
 		}
@@ -46,50 +58,32 @@ export const parse = (plugins, state) => {
 	_plugins.push(
 		require('autoprefixer')({
 			"browsers": "last 4 version"
-		})			
-	)
-	
-	const _nextPlugins = [		
+		}),
 		postcssImages({
 			reference,
 			imageOptions,
 			write
-		}),
-		require('cssnano')({
-			autoprefixer: false,
-			reduceIdents: false,
-			zindex: false,
-			minifyGradients: false
 		})
-	]		
+	)	
 
 	return new Promise(async (resolve, reject) => {
 		try {
-			let globalStyle = await handleStyleSprites(state.styles.global),
-					jsxStyle = await handleStyleSprites(state.styles.jsx),
-					styleId = globalStyle === '' && jsxStyle === '' ? 0 : hashString(globalStyle + jsxStyle)
-				
-			const globalPlugins = [
-				..._plugins,
-				..._nextPlugins
-			]
+			let globalStyle = await handlePostcss(state.styles.global, _plugins)
+			let jsxStyle = await handlePostcss(state.styles.jsx, _plugins)
 			
-			const jsxPlugins = [
-				..._plugins,
-				postcssSelector({ styleId, styleType: state.styleType }),
-				..._nextPlugins
-			]
-		
-			if (globalStyle != '') {
-				globalStyle = await postcss(globalPlugins).process(globalStyle, { from: undefined })
-			}
+			let styleId = jsxStyle === '' ? 0 : hashString(jsxStyle)
 
-			if (jsxStyle != '') {
-				jsxStyle = await postcss(jsxPlugins).process(jsxStyle, { from: undefined })
-			}	
+			if (styleId !== 0) {
+				//拼接css-modules
+				const { css } = await postcss([
+					postcssSelector({ styleId, styleType: state.styleType })
+				]).process(jsxStyle, { from: undefined })				
+				jsxStyle = css
+			}			
+
 			resolve({
-				global: globalStyle !== '' ? globalStyle.css : '',
-				jsx: jsxStyle !== '' ? jsxStyle.css : '',
+				global: globalStyle,
+				jsx: jsxStyle,
 				styleId
 			})
 				

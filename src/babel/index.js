@@ -8,7 +8,7 @@ import fs from '../watch/fs'
 import fsExtra from 'fs-extra'
 import { content, parse } from './parse-style'
 
-import { 
+import {
 	STYLE_COMPONENT,
 	STYLE_DATA_ES,
 	STYLE_COMPONENT_CSS,
@@ -19,6 +19,27 @@ const concat = (a, b) => t.binaryExpression('+', a, b)
 
 let ComponentStyles = []
 
+const styleElement = (state, t) => {
+	if ((state.styles.global.length || state.styles.jsx.length) && state.css !== '') {
+		const attributes = [
+			t.jSXAttribute(
+				t.jSXIdentifier(STYLE_COMPONENT_CSS),
+				t.jSXExpressionContainer(t.stringLiteral(state.css))
+			),
+			t.jSXAttribute(
+				t.jSXIdentifier(STYLE_COMPONENT_STYLEID),
+				t.jSXExpressionContainer(t.stringLiteral(state.styleId || state.globalId))
+			)
+		]
+
+		return t.jSXElement(
+			t.jSXOpeningElement(t.jSXIdentifier(STYLE_COMPONENT), attributes, true), null, []
+		)
+	} else {
+		return null
+	}
+}
+
 export default ({ types: t }) => {
 	return {
 		visitor: {
@@ -26,7 +47,7 @@ export default ({ types: t }) => {
 			Program: {
 				enter(path, state) {
 					let position = state && state.opts && state.opts.position || 'inline'
-					
+
 					if (typeof state.styles === 'undefined') {
 						state.styles = {
 							global: [],
@@ -44,7 +65,7 @@ export default ({ types: t }) => {
 							[t.importDefaultSpecifier(t.identifier(STYLE_COMPONENT))],
 							t.stringLiteral('es-style')
 						))
-					
+
 						path.traverse({
 							JSXOpeningElement(path) {
 								if (path.node.name.name === 'es-style' || path.node.name.name === 'es.style') {
@@ -52,12 +73,12 @@ export default ({ types: t }) => {
 								}
 							}
 						})
-					}					
+					}
 				},
 				exit(p, state) {
 
-					if (state.styles.global.length === 0 && state.styles.jsx.length === 0) { 
-						return 
+					if (state.styles.global.length === 0 && state.styles.jsx.length === 0) {
+						return
 					}
 
 					let position = state && state.opts && state.opts.position || 'inline'
@@ -65,10 +86,10 @@ export default ({ types: t }) => {
 					if (position === 'external') {
 						const reference = state && state.file && state.file.opts.filename
 						const write = state && state.opts && state.opts.write || true
-						
+
 						let { path } = state && state.opts && state.opts.imageOptions || { path: join(process.cwd(), 'style') }
 						path = path || join(process.cwd(), 'style')
-						
+
 						if (ComponentStyles.indexOf(reference) === -1 && state.css) {
 							ComponentStyles.push(reference)
 							if (write) {
@@ -76,12 +97,12 @@ export default ({ types: t }) => {
 									fsExtra.mkdirpSync(path)
 								}
 								fsExtra.appendFileSync(join(path, 'main.css'), state.css)
-							}	
+							}
 						}
 					} else {
 						//写信息到内存文件中
 						let map = state.styleSourceMap
-						
+
 						if (fs.existsSync('/es-style/watch.json')) {
 							map = fs.readFileSync('/es-style/watch.json', 'utf-8')
 							map = JSON.parse(map)
@@ -89,7 +110,7 @@ export default ({ types: t }) => {
 						}
 
 						fs.writeFileSync('/es-style/watch.json', JSON.stringify(map))
-					}	
+					}
 				}
 			},
 			//检测import内容,同时通过sass获取style内容
@@ -97,15 +118,15 @@ export default ({ types: t }) => {
 				let givenPath = path.node.source.value
 				let reference = state && state.file && state.file.opts.filename
 				let imageOptions = state && state.opts && state.opts.imageOptions
-				let type = state && state.opts && state.opts.type	
+				let type = state && state.opts && state.opts.type
 				const write = state && state.opts && state.opts.write || true
 
 				state.styleType = 'class'
-				if (['class', 'attribute'].indexOf(type) !== -1) { 
+				if (['class', 'attribute'].indexOf(type) !== -1) {
 					state.styleType = type
 				}
-								
-				
+
+
 				if (typeof state.styleSourceMap === 'undefined') {
 					state.styleSourceMap = {}
 				}
@@ -119,7 +140,7 @@ export default ({ types: t }) => {
 
 				//引用样式
 				if (shouldBeParseStyle(givenPath)) {
-					
+
 					path.node.specifiers = []
 
 					const mod = requireResolve(givenPath, resolve(reference))
@@ -156,11 +177,11 @@ export default ({ types: t }) => {
 				//引用图片
 				if (shouldBeParseImage(givenPath)) {
 					if (path.node.specifiers.length === 1 && t.isImportDefaultSpecifier(path.node.specifiers[0])) {
-						
+
 						if (typeof imageOptions === 'undefined') {
 							imageOptions = {}
 						}
-						
+
 						const id = path.node.specifiers[0].local.name
 						const content = parseImage(givenPath, reference, imageOptions, write)
 						const variable = t.variableDeclarator(t.identifier(id), t.stringLiteral(content))
@@ -180,8 +201,8 @@ export default ({ types: t }) => {
 				}
 			},
 			//生成jsx的style对象，同时插入转译的样式资源
-			JSXElement(path, state) {				
-				if (!state.hasParseStyle) {
+			JSXElement(path, state) {
+				if (!state.hasParseStyle && (state.styles.global.length || state.styles.jsx.length)) {
 					let plugins = state && state.opts && state.opts.plugins
 					if (typeof plugins === 'undefined') {
 						plugins = []
@@ -193,6 +214,7 @@ export default ({ types: t }) => {
 						styleId = result.styleId
 						wait = false
 					}).catch(err => {
+						console.log(err)
 						css = err
 					})
 
@@ -201,65 +223,49 @@ export default ({ types: t }) => {
 					}
 
 					loopWhile(() => wait)
-
+					
 					state.hasParseStyle = true
 					state.styleId = styleId
+					state.globalId = styleId || hashString(css)
 					state.css = css
 				}
 
 				//JSXElement是一个对象
-				if (t.isJSXMemberExpression(path.node.openingElement.name)) { 
+				if (t.isJSXMemberExpression(path.node.openingElement.name)) {
 					return
 				}
 
 				const name = path.node.openingElement.name.name
-				
+
+				//如果是内联形式写入css样式
 				if (
 					name &&
-					name !== STYLE_COMPONENT && 
+					name !== STYLE_COMPONENT &&
 					name.charAt(0) !== name.charAt(0).toUpperCase() &&
 					name !== 'style'
-				) {	
+				) {
 					let position = state && state.opts && state.opts.position || 'inline'
 
 					if (position === 'external') {
-						if (name === 'es-style' || name === 'es.style') { 
+						if (name === 'es-style' || name === 'es.style') {
 							path.remove()
 						}
 						return
-					}	
-			
-					
+					}
+
 					if (name === 'es-style' || name === 'es.style') {
 						if (state.hasEsStyle) {
 							path.remove()
 							return
-						}	
+						}
+
 						//存在es-style标签，则替换标签
 						if (state.hasEsStyleElement) {
 							state.hasEsStyle = true
-							if ((state.styles.global.length || state.styles.jsx.length) && state.css !== '') {
-								const attributes = [
-									t.jSXAttribute(
-										t.jSXIdentifier(STYLE_COMPONENT_CSS),
-										t.jSXExpressionContainer(t.stringLiteral(state.css))
-									)
-								]
-
-								if (state.styleId !== 0) {
-									attributes.push(
-										t.jSXAttribute(
-											t.jSXIdentifier(STYLE_COMPONENT_STYLEID),
-											t.jSXExpressionContainer(t.stringLiteral(state.styleId))
-										)
-									)
-								}
-
-								path.replaceWith(t.jSXElement(
-									t.jSXOpeningElement(t.jSXIdentifier(STYLE_COMPONENT), attributes, true), null, []
-								)
-								)
-							} else { 
+							const _style = styleElement(state, t)
+							if (_style) {
+								path.replaceWith(_style)
+							} else {
 								path.remove()
 							}
 						}
@@ -267,37 +273,15 @@ export default ({ types: t }) => {
 						if (state.hasJsxStyle) {
 							return
 						}
-						
+
 						//不存在es-style标签，就添加元素
 						if (!state.hasEsStyleElement) {
 							state.hasJsxStyle = true
-		
-							if ((state.styles.global.length || state.styles.jsx.length) && state.css !== '') {
-								const attributes = [
-									t.jSXAttribute(
-										t.jSXIdentifier(STYLE_COMPONENT_CSS),
-										t.jSXExpressionContainer(t.stringLiteral(state.css))
-									)
-								]
-		
-								if (state.styleId !== 0) {
-									attributes.push(
-										t.jSXAttribute(
-											t.jSXIdentifier(STYLE_COMPONENT_STYLEID),
-											t.jSXExpressionContainer(t.stringLiteral(state.styleId))
-										)
-									)
-								}
-
-								state.stylePath = t.jSXElement(
-									t.jSXOpeningElement(t.jSXIdentifier(STYLE_COMPONENT), attributes, true),
-									null,
-									[]
-								)
-		
-								path.node.children.push(state.stylePath)
+							const _style = styleElement(state, t)
+							if (_style) {
+								path.node.children.push(_style)
 							}
-						}	
+						}
 					}
 				}
 			},
@@ -309,27 +293,27 @@ export default ({ types: t }) => {
 				const styleId = state.styleId
 				let hasClassName = false
 
-				if (attrs.length) {					
-					attrs.map(item => { 
+				if (attrs.length) {
+					attrs.map(item => {
 						if (
 							t.isJSXAttribute(item) &&
 							t.isJSXIdentifier(item.name) &&
 							item.name.name === 'className'
-						) { 
+						) {
 							hasClassName = true
 						}
 					})
 				}
 
 				//JSXElement是一个对象
-				if (t.isJSXMemberExpression(path.node.name) && !hasClassName) { 
+				if (t.isJSXMemberExpression(path.node.name) && !hasClassName) {
 					return
 				}
 
-				if (path.node.name.name.charAt(0) == path.node.name.name.charAt(0).toUpperCase() && !hasClassName) { 
-					return 
+				if (path.node.name.name.charAt(0) == path.node.name.name.charAt(0).toUpperCase() && !hasClassName) {
+					return
 				}
-				
+
 				if (state.styleType === 'class') {
 					let isExist = false
 					//获取对象属性,添加className
@@ -354,7 +338,7 @@ export default ({ types: t }) => {
 										concat(t.StringLiteral(STYLE_DATA_ES + '-' + styleId + ' '), item.value)
 									)
 								}
-							
+
 								isExist = true
 							}
 						})
@@ -373,7 +357,7 @@ export default ({ types: t }) => {
 							t.StringLiteral('')
 						))
 					}
-				}	
+				}
 			}
 		}
 	}
