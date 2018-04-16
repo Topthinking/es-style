@@ -6,7 +6,7 @@ import md5 from 'md5'
 import { resolve, basename, join } from 'path'
 import { isObject } from './'
 
-export default (url, reference, imageOptions, write = true) => {
+export default (url, reference, imageOptions, write = true) => {	
 
 	const watchData = get()
 

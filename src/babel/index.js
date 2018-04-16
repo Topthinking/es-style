@@ -1,5 +1,6 @@
 import { loopWhile } from 'deasync'
 import * as t from 'babel-types'
+import del from 'del'
 import { resolve, join } from 'path'
 import requireResolve from 'require-resolve'
 import { isObject, shouldBeParseStyle, shouldBeParseImage, hashString } from '../utils'
@@ -7,6 +8,9 @@ import parseImage from "../utils/parse-image"
 import fs from '../watch/fs'
 import fsExtra from 'fs-extra'
 import { content, parse } from './parse-style'
+import postcssSprites from '../plugins/postcss-sprites'
+
+import Config from '../utils/config'
 
 import {
 	STYLE_COMPONENT,
@@ -40,10 +44,63 @@ const styleElement = (state, t) => {
 	}
 }
 
+const config = Config({
+	refresh: !/production|test/.test(process.env.NODE_ENV)
+})
+
+let sprites = config.plugins.filter(item => item[0] === 'postcss-sprites').pop()
+
+if (sprites) { 
+	const spritesOptions = sprites[1]
+	if (spritesOptions.spritePath) { 
+		//删掉存放雪碧图的目录
+		if (spritesOptions.spritePath === '.es-style') { 
+			console.log('spritePath 不能设置为 .es-style')
+			process.exit()
+		}
+		del(join(process.cwd(), spritesOptions.spritePath), { force: true })		
+	}
+}
+
+const config_autoprefixer = config.plugins.filter(item => item[0] === 'autoprefixer').pop()
+const config_postcssSprites = config.plugins.filter(item => item[0] === 'postcss-sprites').pop()
+
+let autoprefixerOptions = {}
+let postcssSpritesOptions = {}
+
+if (config_autoprefixer) { 
+	autoprefixerOptions = config_autoprefixer[1]
+}
+
+if (config_postcssSprites) { 
+	postcssSpritesOptions = config_postcssSprites[1]
+}
+
+let plugins = [
+	postcssSprites({
+		spritePath: `.es-sprites`,
+		hooks: {
+			onSaveSpritesheet: (opts, { extension, image }) => { 							
+				return join(opts.spritePath, ['sprite_' + hashString(image.toString()), extension].join('.'));
+			}
+		},
+		...postcssSpritesOptions
+	}),
+	require('autoprefixer')({
+		"browsers": "last 4 version",
+		...autoprefixerOptions
+	})
+]
+
+const _plugins = config.plugins.filter(item => item[0] !== 'postcss-sprites' && item[0] !== 'autoprefixer')
+
+//保存新的plugins
+_plugins.length && _plugins.map(item => plugins.push(require(item[0])(item[1])))	
+
 export default ({ types: t }) => {
 	return {
 		visitor: {
-			//全局import es-style
+			//全局import es-style 和处理一些全局的变量
 			Program: {
 				enter(path, state) {
 					let position = state && state.opts && state.opts.position || 'inline'
@@ -182,6 +239,10 @@ export default ({ types: t }) => {
 							imageOptions = {}
 						}
 
+						if (config.imageLimit) { 
+							imageOptions.limit = config.imageLimit
+						}
+
 						const id = path.node.specifiers[0].local.name
 						const content = parseImage(givenPath, reference, imageOptions, write)
 						const variable = t.variableDeclarator(t.identifier(id), t.stringLiteral(content))
@@ -202,14 +263,10 @@ export default ({ types: t }) => {
 			},
 			//生成jsx的style对象，同时插入转译的样式资源
 			JSXElement(path, state) {
-				if (!state.hasParseStyle && (state.styles.global.length || state.styles.jsx.length)) {
-					let plugins = state && state.opts && state.opts.plugins
-					if (typeof plugins === 'undefined') {
-						plugins = []
-					}
+				if (!state.hasParseStyle && (state.styles.global.length || state.styles.jsx.length)) {					
 					let css, styleId
 					let wait = true
-					parse(plugins, state).then(result => {
+					parse(plugins, state, config).then(result => {
 						css = result.global + result.jsx
 						styleId = result.styleId
 						wait = false
@@ -285,6 +342,7 @@ export default ({ types: t }) => {
 					}
 				}
 			},
+			//给所有的jsx节点插入styleId来进行唯一性的区分
 			JSXOpeningElement(path, state) {
 
 				//拿到当前的JSX对象的访问路径

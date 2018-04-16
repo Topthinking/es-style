@@ -2,7 +2,6 @@ import * as postcss from 'postcss'
 import parseImage from '../utils/parse-image'
 
 export default postcss.plugin('postcss-images', (options = {}) => {
-	const reference = options.reference
 	const imageOptions = options.imageOptions
 	const write = options.write
 	return root => {
@@ -21,7 +20,7 @@ export default postcss.plugin('postcss-images', (options = {}) => {
 							} else { 
 								url = url.substr(0, url.length - 1)								
 							}
-							const itemValue = item.replace(url, parseImage(url, reference, imageOptions, write))							
+							const itemValue = item.replace(url, parseImage(url, root.source.input.file, imageOptions, write))							
 							decl.value = decl.value.replace(item, itemValue)							
 						}	
 					})																				

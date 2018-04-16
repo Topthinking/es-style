@@ -7,7 +7,6 @@ import { hashString } from '../utils'
 
 import postcssSelector from '../plugins/postcss-selector'
 import postcssImages from '../plugins/postcss-images'
-import postcssSprites from '../plugins/postcss-sprites'
 
 //通过node-sass解析并获取style字符串
 export const content = (givenPath) => sass.renderSync({ file: givenPath }).css.toString()
@@ -19,17 +18,7 @@ const handlePostcss = (styles, plugins) => {
 			try {
 				const style = await Promise.all(styles.map(async (item, index) => {
 						//解析css样式
-						const { css } = await postcss([
-							postcssSprites({
-								spritePath: `.es-style`,
-								hooks: {
-									onSaveSpritesheet: (opts, { extension, image }) => { 							
-										return path.join(opts.spritePath, ['sprite_' + hashString(image.toString()), extension].join('.'));
-									}
-								}
-							}),
-							...plugins
-						]).process(item.css, { from: item.from })
+						const { css } = await postcss(plugins).process(item.css, { from: item.from })
 						//压缩css文件
 						const output = new CleanCSS({}).minify(css);
 						return output.styles
@@ -45,8 +34,8 @@ const handlePostcss = (styles, plugins) => {
 }
 
 //将css字符串经过postcss插件进行二次操作
-export const parse = (plugins, state) => {
-	const _plugins = []
+export const parse = (plugins, state, config) => {
+
 	let reference = state && state.file && state.file.opts.filename
 	let imageOptions = state && state.opts && state.opts.imageOptions
 	const write = state && state.opts && state.opts.write || true
@@ -55,21 +44,22 @@ export const parse = (plugins, state) => {
 		imageOptions = {}
 	}
 
-	_plugins.push(
-		require('autoprefixer')({
-			"browsers": "last 4 version"
-		}),
+	if (config.imageLimit) {
+		imageOptions.limit = config.imageLimit
+	}
+
+	plugins = [
+		...plugins,
 		postcssImages({
-			reference,
 			imageOptions,
 			write
 		})
-	)	
+	] 
 
 	return new Promise(async (resolve, reject) => {
 		try {
-			let globalStyle = await handlePostcss(state.styles.global, _plugins)
-			let jsxStyle = await handlePostcss(state.styles.jsx, _plugins)
+			let globalStyle = await handlePostcss(state.styles.global, plugins)
+			let jsxStyle = await handlePostcss(state.styles.jsx, plugins)
 			
 			let styleId = jsxStyle === '' ? 0 : hashString(jsxStyle)
 

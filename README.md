@@ -2,11 +2,7 @@
 
 ## 说明
 
-`es-style`服务于`react`项目，它是针对服务端渲染时的静态资源处理方案,同时也适用于单页面应用
-
-`es-style`serve`react`project, it is on the server when rendering the static resource processing scheme, 
-
-at the same time can also be applied to single page application
+`es-style`是基于`postcss`的转译功能，同时服务于`react`项目，它是针对服务端渲染时的静态资源处理方案,同时也适用于单页面应用
 
 ## 体验
 
@@ -123,6 +119,33 @@ export default () => (
   </div>
 )
 //如果没有es-style标签，那么会从上往下按就近原则存放css的资源组件
+```
+
+## 配置文件 .es-style
+
+在项目根目录创建`.es-style`文件，配置内容如下
+
+`plugins` 表示`postcss`插件，⚠️ 下面两个插件暂时不要使用 `cssnano` 和 `postcss-modules`
+
+因为es-style已经实现这样的功能，还有雪碧图已经内置了`postcss-sprites`，其他插件可以进行引用
+
+如果有报错，请ISSUE
+
+```json
+{
+  "plugins":[
+    ["postcss-sprites",{
+      "spritePath": ".es-sprites"
+    }],
+    ["autoprefixer",{
+      "browsers": "last 4 version"
+    }],
+    ["postcss-plugin-px2rem",{
+
+    }]
+  ],
+  "imageLimit": 50
+}
 ```
 
 ## 注意
