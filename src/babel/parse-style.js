@@ -47,7 +47,7 @@ export const parse = (plugins, state, config) => {
 	if (config.imageLimit) {
 		imageOptions.limit = config.imageLimit
 	}
-
+	
 	plugins = [
 		...plugins,
 		postcssImages({
