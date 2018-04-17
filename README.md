@@ -156,4 +156,6 @@ export default () => (
 
 3. 开发环境不推荐使用`happypack`插件来编译,会导致图片资源丢失,由于使用的是内存文件系统，使用它会导致在每个打开的线程中创建文件，产生不可控的影响
 
-4. `.gitignore`添加`.es-style`，忽略雪碧图生成的图片
+4. `.gitignore`添加上面配置文件的`.es-sprites`，忽略雪碧图生成的图片，默认是`.es-sprites`
+
+5. 配置文件`.es-style`中的plugin，执行顺序从上往下，重复的plugin会被`忽略`，一直执行到最后
