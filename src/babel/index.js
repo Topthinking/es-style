@@ -92,9 +92,10 @@ let plugins = [
 	})
 ]
 
-const _plugins = config.plugins.filter(item => item[0] !== 'postcss-sprites' && item[0] !== 'autoprefixer')
+//过滤不需要进行处理的插件
+const _plugins = config.plugins.filter(item => ['cssnano', 'postcss-modules', 'postcss-sprites', 'autoprefixer'].indexOf(item[0]) === -1)
 
-//保存新的plugins,并且防止多次引用
+//保存新的plugins,并且防止多次引用,
 let _tmpPlugin = []
 _plugins.length && _plugins.map(item => _tmpPlugin.indexOf(item[0]) === -1 && _tmpPlugin.push(item[0]) && plugins.push(require(item[0])(item[1])))	
 _tmpPlugin = []

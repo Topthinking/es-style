@@ -127,7 +127,7 @@ export default () => (
 
 `plugins` 表示`postcss`插件，⚠️ 下面两个插件暂时不要使用 `cssnano` 和 `postcss-modules`
 
-因为es-style已经实现这样的功能，还有雪碧图已经内置了`postcss-sprites`，其他插件可以进行引用
+因为es-style已经实现这样的功能，还有雪碧图已经内置了`postcss-sprites`和`autoprefixer`插件，可用对其进行参数配置
 
 如果有报错，请ISSUE
 
