@@ -144,7 +144,7 @@ export default () => (
 
     }]
   ],
-  "imageLimit": 50
+  "imageLimit": 50  //允许 <=50 字节的图片转换成base64
 }
 ```
 
