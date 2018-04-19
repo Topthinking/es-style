@@ -1,19 +1,39 @@
-import memoryFs, { set } from './fs'
-import systemFs from 'fs'
+import systemFs from 'fs-extra'
 import chokidar from 'chokidar'
+import memoryFs, { set } from './fs'
+import { watchImport, clearPaths } from './watch-import'
+
+let watchFiles = []
 
 const watch = () => {     
   if (memoryFs.existsSync("/es-style/watch.json")) {
     let map = memoryFs.readFileSync("/es-style/watch.json", "utf-8")  
     map = JSON.parse(map)
-    const keys = Object.keys(map)
+    let keys = Object.keys(map)
     if (keys.length) {
-      chokidar.watch(keys, { ignored: /node_modules/ }).on('all', (event, path) => { 
-        if (event === 'change') {
-          const _path = map[path]
-          _path.map(item => systemFs.utimes(item, new Date(), new Date(), () => { }))
-        }
-      })
+      let error = []      
+      watchImport(keys, memoryFs, map, error)
+      clearPaths()
+      keys = Object.keys(map)
+
+      keys = keys.filter(item => watchFiles.indexOf(item) === -1)      
+
+      watchFiles = [...keys, ...watchFiles]
+      
+      if (keys.length) {
+        chokidar.watch(keys, { ignored: /node_modules/ }).on('all', (event, path) => {
+          if (event === 'change') {
+            const _path = map[path]
+            _path.map(item => {
+              systemFs.utimesSync(item, new Date(), new Date(), () => { })
+            })
+          }
+        })
+      }
+      
+      if (error.length) { 
+        throw error[0]
+      }
     }
   }
 }
@@ -37,9 +57,13 @@ export default function (compiler, app = null, donecallback = null) {
       next();
     });
   }
-  compiler.plugin('done', (stats) => {
-    watch();    
-    donecallback && donecallback(stats);
+  compiler.plugin('done', async (stats) => {
+    try {
+      watch(); 
+      donecallback && donecallback(stats);
+    } catch (error) {
+      console.log(error)
+    }           
   });
   return compiler;
 }

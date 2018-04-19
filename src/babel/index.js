@@ -33,6 +33,10 @@ const styleElement = (state, t) => {
 			t.jSXAttribute(
 				t.jSXIdentifier(STYLE_COMPONENT_STYLEID),
 				t.jSXExpressionContainer(t.stringLiteral(state.styleId || state.globalId))
+			),
+			t.jSXAttribute(
+				t.jSXIdentifier('production'),
+				t.jSXExpressionContainer(t.BooleanLiteral(process.env.NODE_ENV === 'production'))
 			)
 		]
 
@@ -113,6 +117,7 @@ export default ({ types: t }) => {
 							global: [],
 							jsx: []
 						}
+						state.styleId = 0
 					}
 
 					//插入import ‘es-style‘
@@ -353,6 +358,10 @@ export default ({ types: t }) => {
 				const attrs = el.attributes
 				const styleId = state.styleId
 				let hasClassName = false
+
+				if (styleId === 0) { 
+					return 
+				}
 
 				if (attrs.length) {
 					attrs.map(item => {

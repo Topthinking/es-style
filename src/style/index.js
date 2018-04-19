@@ -26,7 +26,9 @@ export default class JSXStyle extends Component {
   }
 
   componentWillUnmount() {
-    styleSheetRegistry.remove(this.props)
+    if (this.props.production) {
+      styleSheetRegistry.remove(this.props)
+    }  
   }
 
   render() {

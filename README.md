@@ -93,11 +93,7 @@ const compiler = watch(webpack(webpackConfig), app, ()=>{
 
 #### 🍡  雪碧图
   
-    版本0.1.8后支持，如果需要雪碧图，那么在当前css文件的头部添加如下注释
-    
-    那么该css文件中的所有图片将集成到一张大图上，同时打包的图片会存放在目录为.es-style的文件中
-
-    所有git要忽略.es-style目录
+    如果需要雪碧图，那么在当前css文件的头部添加如下注释，则该css文件中的所有图片将集成到一张大图上      
 
 ```css
 /*sprite*/

@@ -84,7 +84,7 @@ export default class StyleSheetRegistry {
 
   update(props, nextProps) {
     this.add(nextProps)
-    this.remove(props)
+   // this.remove(props)
   }
 
   flush() {

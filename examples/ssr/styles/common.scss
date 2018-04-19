@@ -1,0 +1,7 @@
+@import './color.scss';
+
+@mixin wh($width,$height){
+	width: $width;
+	height: $height;
+	background-color: khaki;
+}

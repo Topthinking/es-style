@@ -1,7 +1,7 @@
-/*sprite*/
+@import '../styles/mixin.scss';
+
 .container{
-	width: 300px;
-	height: 200px;
+	@include wh(300px,200px);
 	border:1px solid red;
 	display: flex;
 	justify-content: center;

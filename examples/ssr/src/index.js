@@ -1,13 +1,16 @@
 import React from 'react'
+import Home from './home'
 
-
-import './index.scss'
-import './mine.scss'
+import './index.scss!'
+import './mine.scss!'
 
 
 
 export default () => (
-	<div className="container">
-		<h1>鼠标放上来</h1>
-	</div>
+	<React.Fragment>
+		<div className={`container`}>
+			<h1>鼠标放上来</h1>
+		</div>
+		<Home/>
+	</React.Fragment>	
 )

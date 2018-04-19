@@ -1,4 +1,4 @@
-import * as postcss from 'postcss'
+import postcss from 'postcss'
 import parseImage from '../utils/parse-image'
 
 export default postcss.plugin('postcss-images', (options = {}) => {
