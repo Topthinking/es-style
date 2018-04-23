@@ -93,7 +93,11 @@ const compiler = watch(webpack(webpackConfig), app, ()=>{
 
 #### 🍡  雪碧图
   
-    如果需要雪碧图，那么在当前css文件的头部添加如下注释，则该css文件中的所有图片将集成到一张大图上      
+    如果需要雪碧图，那么在当前css文件的头部添加如下注释，则该css文件中的所有图片将集成到一张大图上  
+
+    不支持svg合并，由于svg-sprite使用到PhantomJS，文件较大，去掉了 
+
+    如果需要，可以在项目中自行开发 🙂   
 
 ```css
 /*sprite*/
