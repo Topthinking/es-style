@@ -4,7 +4,6 @@ import Promise from 'bluebird';
 import _ from 'lodash';
 import debug from 'debug';
 import RasterFactory from './factories/raster';
-import VectorFactory from './factories/vector';
 
 /**
  * Wrap with promises.
@@ -310,9 +309,7 @@ export function runSpritesmith(opts, images) {
 				return tmp.join(GROUP_DELIMITER);
 			})
 			.map((images, tmp) => {
-				const factory = tmp.indexOf(TYPE_VECTOR) > -1 ? VectorFactory : RasterFactory;
-
-				return factory(opts, images)
+				return RasterFactory(opts, images)
 					.then((spritesheet) => {
 						// Remove the '_', 'raster' or 'vector' prefixes
 						tmp = tmp.split(GROUP_DELIMITER).splice(2);
@@ -508,8 +505,9 @@ export function getImageUrl(rule) {
 export function isImageSupported(url) {
 	const http = /^http[s]?/gi;
 	const base64 = /^data\:image/gi;
+	const svg = /\.svg$/gi;
 
-	return !http.test(url) && !base64.test(url);
+	return !http.test(url) && !base64.test(url) && !svg.test(url);
 }
 
 /**

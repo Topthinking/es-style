@@ -4,6 +4,7 @@ import Promise from 'bluebird';
 import _ from 'lodash';
 
 /**
+ * 放弃不用  svg-sprite 库比较大
  * Generate the spritesheet.
  * @param  {Object} opts
  * @param  {Array}  images

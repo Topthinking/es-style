@@ -1,6 +1,6 @@
 {
   "name": "es-style",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "license": "MIT",
   "description": "easy stylesheet style",
   "files": [
@@ -106,7 +106,6 @@
     "postcss": "^6.0.21",
     "require-resolve": "^0.0.2",
     "spritesmith": "^3.3.0",
-    "string-hash": "^1.1.3",
-    "svg-sprite": "^1.4.0"
+    "string-hash": "^1.1.3"
   }
 }
