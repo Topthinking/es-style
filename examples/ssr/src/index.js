@@ -1,10 +1,7 @@
 import React from 'react'
-import Home from './home'
+import Home from './detail'
 
-import './index.scss!'
-import './mine.scss!'
-
-
+import './index.scss'
 
 export default () => (
 	<React.Fragment>

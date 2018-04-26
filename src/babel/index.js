@@ -21,7 +21,8 @@ import {
 
 const concat = (a, b) => t.binaryExpression('+', a, b)
 
-let ComponentStyles = []
+//记录样式是否出现重复的引用，主要用来做css导出使用的
+let styleIds = [], globalIds = []
 
 const styleElement = (state, t) => {
 	if ((state.styles.global.length || state.styles.jsx.length) && state.css !== '') {
@@ -155,8 +156,7 @@ export default ({ types: t }) => {
 						let { path } = state && state.opts && state.opts.imageOptions || { path: join(process.cwd(), 'style') }
 						path = path || join(process.cwd(), 'style')
 
-						if (ComponentStyles.indexOf(reference) === -1 && state.css) {
-							ComponentStyles.push(reference)
+						if (state.css != '') {
 							if (write) {
 								if (!fsExtra.existsSync(path)) {
 									fsExtra.mkdirpSync(path)
@@ -224,7 +224,9 @@ export default ({ types: t }) => {
 						}
 					}
 
-					const css = content(givenPath, reference)
+					const css = content(givenPath, reference)					
+					
+					//需要做当前jsx的解析工作
 					if (globalStyle) {
 						state.styles.global.push({
 							from: givenPath,
@@ -271,11 +273,13 @@ export default ({ types: t }) => {
 			},
 			//生成jsx的style对象，同时插入转译的样式资源
 			JSXElement(path, state) {
+				let position = state && state.opts && state.opts.position || 'inline'
 				if (!state.hasParseStyle && (state.styles.global.length || state.styles.jsx.length)) {					
-					let css, styleId
+					let css = '', styleId, globalStyle = '', JsxStyle = ''
 					let wait = true
 					parse(plugins, state, config).then(result => {
-						css = result.global + result.jsx
+						globalStyle = result.global
+						JsxStyle = result.jsx
 						styleId = result.styleId
 						wait = false
 					}).catch(err => {
@@ -290,9 +294,26 @@ export default ({ types: t }) => {
 					loopWhile(() => wait)
 					
 					state.hasParseStyle = true
+
 					state.styleId = styleId
-					state.globalId = styleId || hashString(css)
-					state.css = css
+					state.globalId = globalStyle === '' ? 0 : hashString(globalStyle)
+
+					if (position === 'external') {
+						if (styleIds.indexOf(state.styleId) === -1) {
+							//没有重复的局部样式
+							styleIds.push(state.styleId)
+							css = css + JsxStyle
+						}
+
+						if (state.globalId !==0 && globalIds.indexOf(state.globalId) === -1) {
+							//没有重复的全局样式
+							globalIds.push(state.globalId)
+							css = css + globalStyle
+						}
+						state.css = css
+					} else { 
+						state.css = globalStyle + JsxStyle
+					}						
 				}
 
 				//JSXElement是一个对象

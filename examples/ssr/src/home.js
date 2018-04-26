@@ -1,6 +1,6 @@
 import React from 'react'
 
-import './home.scss'
+import './index.scss'
 
 export default () => (
 	<div>
