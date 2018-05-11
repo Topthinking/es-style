@@ -40,7 +40,7 @@ const watch = () => {
 
 let isWatch = false
 
-export default function (compiler, app = null, donecallback = null) {
+module.exports =  function (compiler, app = null, donecallback = null) {
   if (isWatch)
     return;
   isWatch = true;

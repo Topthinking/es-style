@@ -1,9 +1,5 @@
-rm -rf ../../work/ximalaya/ximalaya-web/dev/node_modules/es-style/dist/
-cp -r ./dist ../../work/ximalaya/ximalaya-web/dev/node_modules/es-style/
 
-rm -rf ../../work/ximalaya/framework/library/award.js-demo/node_modules/es-style/dist/
-cp -r ./dist/ ../../work/ximalaya/framework/library/award.js-demo/node_modules/es-style/dist
 
-rm -rf ../../work/ximalaya/community_circle/dev/node_modules/es-style/dist/
-cp -r ./dist ../../work/ximalaya/community_circle/dev/node_modules/es-style/
+rm -rf ../webpack-react/dva/node_modules/_es-style\@0.2.7\@es-style/dist/
 
+cp -r ./dist ../webpack-react/dva/node_modules/_es-style\@0.2.7\@es-style/
