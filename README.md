@@ -2,7 +2,7 @@
 
 ## 说明
 
-`es-style`是基于`postcss`的转译功能，同时服务于`react`项目，它是针对服务端渲染时的静态资源处理方案,同时也适用于单页面应用
+`es-style`是基于`postcss`的转译功能，同时服务于`react`项目，它是针对服务端渲染时的静态资源处理方案，同时也适用于单页面应用
 
 ## 体验
 
@@ -159,3 +159,7 @@ export default () => (
 4. `.gitignore`添加上面配置文件的`.es-sprites`，忽略雪碧图生成的图片，默认是`.es-sprites`
 
 5. 配置文件`.es-style`中的plugin，执行顺序从上往下，重复的plugin会被`忽略`，一直执行到最后
+
+### License
+
+MIT
