@@ -65,14 +65,17 @@ const compiler = watch(webpack(webpackConfig), app, ()=>{
   "plugins": [
     "es-style/babel",{
       "type": "attribute", //默认是 `class`， 当前配置样式选择器是元素属性
-      "position":"external", //样式存放位置，inline内联（head头中），external外联（文件中），默认内联
-      "write":true, //当前编译过程是否写文件(图片资源和css资源），原因是编译node端代码不需要写静态资源文件，加快编译过程,默认是true可写
-      "imageOptions": {
-        "fileSystem": "file", //图片资源存放文件类型，默认存放在内存中（memory），如果指定file，那么就存放到指定目录的硬盘上
-        "path": "./dist",        
-        "publicPath":"/",
-        "dir":"images/",
+      "position": "external", //样式存放位置，inline内联（head头中），external外联（文件中），默认内联
+      "write": true, //当前编译过程是否写文件(图片资源和css资源），原因是编译node端代码不需要写静态资源文件，加快编译过程,默认是true可写
+      "publicPath": "/", //公共资源前缀，一般用来设置cdn地址
+      "fileSystem": "file",//资源存放文件类型，默认存放在内存中（memory），如果指定file，那么就存放到指定目录的硬盘上
+      "path": "./dist", //资源存放的路径目录
+      "imageOptions": {              
+        "path": "images/",  //图片资源存放的目录
         "limit": 5000
+      },
+      "fontOptions": {
+        "path": "fonts/",   //字体资源存放的目录
       }
     }
   ]
@@ -144,7 +147,7 @@ export default () => (
 
     }]
   ],
-  "imageLimit": 50  //允许 <=50 字节的图片转换成base64
+  "limit": 50  //允许 <=50 字节的图片或者字体文件转换成base64
 }
 ```
 

@@ -22,9 +22,9 @@ module.exports = {
 					plugins: [
 						[							
 							require('../../../babel').default, {
-								"imageOptions": {
-									'publicPath': '/',
-									'dir':'images/',
+								"publicPath": '/',
+								"imageOptions": {									
+									'path':'dist/images/',
 									'limit': 50
 								}
 							}

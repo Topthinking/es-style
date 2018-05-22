@@ -4,19 +4,20 @@ import mime from 'mime'
 import requireResolve from 'require-resolve'
 import md5 from 'md5'
 import { resolve, basename, join } from 'path'
-import { isObject } from './'
 
-export default (url, reference, imageOptions, write = true) => {	
+export default ({
+	path,
+	url,
+	reference,
+	write = true,
+	imageOptions,
+	publicPath = '/',
+	fileSystem = 'memory' //图片资源文件类型  file 文本文件类型  memory 内存文件类型
+} = {}) => {	
+
+	imageOptions.path = imageOptions.path || 'dist/images'
 
 	const watchData = get()
-
-	let {
-		limit = null,
-		dir = '',
-		path = join(process.cwd(), 'dist'),
-		publicPath = '/',
-		fileSystem = 'memory'	//图片资源文件类型  file 文本文件类型  memory 内存文件类型
-	} = imageOptions
 	
 	if (Object.keys(watchData).length) { 
 		path = watchData.path
@@ -38,7 +39,7 @@ export default (url, reference, imageOptions, write = true) => {
 			const stat = fs.statSync(src)
 			const data = fs.readFileSync(src)
 
-			if (limit != null && stat.size < limit) {
+			if (imageOptions.limit && stat.size < imageOptions.limit) {
 				//转成base64
 				const mimetype = mime.getType(src)
 				new_src = `data:${mimetype || ''};base64,${data.toString('base64')}`
@@ -60,15 +61,15 @@ export default (url, reference, imageOptions, write = true) => {
 				//file 文本文件类型
 				//memory 内存文件类型
 				if (fileSystem === 'file') {					
-					new_src = [publicPath, dir, _filename].join("")
+					new_src = [publicPath, imageOptions.path , _filename].join("")
 					if (write) {
 						//如果当前可写，那么就将图片资源输出
-						fs.copySync(src, join(path, dir, _filename))
+						fs.copySync(src, join(path, imageOptions.path, _filename))
 					}	
 				}
 				
 				if (fileSystem === 'memory') {
-					const new_dir = join('/static', dir)
+					const new_dir = join('/static', imageOptions.path)
 					
 					if (!memoryFs.existsSync(new_dir)) {
 						memoryFs.mkdirpSync(new_dir)

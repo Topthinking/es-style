@@ -45,6 +45,7 @@ module.exports =  function (compiler, app = null, donecallback = null) {
     return;
   isWatch = true;
   const { path, publicPath } = compiler.options.output;
+  
   set({ path, publicPath });
   if (app != null && typeof app.use != 'undefined') {
     app.use((req, res, next) => {

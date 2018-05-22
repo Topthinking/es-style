@@ -144,7 +144,7 @@ export default ({ types: t }) => {
 						})
 					}
 				},
-				exit(p, state) {
+				exit(path, state) {
 
 					if (state.styles.global.length === 0 && state.styles.jsx.length === 0) {
 						return
@@ -156,20 +156,19 @@ export default ({ types: t }) => {
 						const reference = state && state.file && state.file.opts.filename
 						const write = state && state.opts && state.opts.write || true
 
-						let { path } = state && state.opts && state.opts.imageOptions || { path: join(process.cwd(), 'style') }
-						path = path || join(process.cwd(), 'style')
-
+						let exportPath = state && state.opts && state.opts.path || { path: join(process.cwd(), 'style') }						
+						
 						if (state.css != '') {
 							if (write) {
-								if (!fsExtra.existsSync(path)) {
-									fsExtra.mkdirpSync(path)
+								if (!fsExtra.existsSync(exportPath)) {
+									fsExtra.mkdirpSync(exportPath)
 								}
 								let css = state.css
 								if (FirstExecuteStyle) { 
 									css = `/*!\n* es-style\n* https://github.com/topthinking/es-style\n*\n* Released under MIT license. Copyright (c) 2018 GitHub Inc.\n*/`	+ css
 									FirstExecuteStyle = false
 								}
-								fsExtra.appendFileSync(join(path, 'main.css'), css)
+								fsExtra.appendFileSync(join(exportPath, 'main.css'), css)
 							}
 						}
 					} else {
@@ -190,7 +189,10 @@ export default ({ types: t }) => {
 			ImportDeclaration(path, state) {
 				let givenPath = path.node.source.value
 				let reference = state && state.file && state.file.opts.filename
-				let imageOptions = state && state.opts && state.opts.imageOptions
+				let imageOptions = state && state.opts && state.opts.imageOptions 
+				let fileSystem = state && state.opts && state.opts.fileSystem	|| 'memory'
+				let publicPath = state && state.opts && state.opts.publicPath	|| '/'
+				let exportPath = state && state.opts && state.opts.path || './dist'
 				let type = state && state.opts && state.opts.type
 				const write = state && state.opts && state.opts.write || true
 
@@ -257,12 +259,21 @@ export default ({ types: t }) => {
 							imageOptions = {}
 						}
 
-						if (config.imageLimit) { 
-							imageOptions.limit = config.imageLimit
+						if (config.limit) { 
+							imageOptions.limit = config.limit
 						}
 
 						const id = path.node.specifiers[0].local.name
-						const content = parseImage(givenPath, reference, imageOptions, write)
+						const content = parseImage({
+							url: givenPath,
+							reference,
+							write,
+							imageOptions,
+							path: exportPath,
+							publicPath,
+							fileSystem
+						})
+						
 						const variable = t.variableDeclarator(t.identifier(id), t.stringLiteral(content))
 
 						path.replaceWith({

@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "node clean.js && supervisor -i ./src,./dist,./static,./images server.js"
+    "dev": "node clean.js && node server.js"
   },
   "author": "",
   "license": "ISC"

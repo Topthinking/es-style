@@ -1,5 +1,48 @@
 @import '../styles/mixin.scss';
 
+@font-face {
+	font-family: xuicon;
+	src: url(https://at.alicdn.com/t/font_610213_nqoaa5qspvr96bt9.eot);
+	src: url(https://at.alicdn.com/t/font_610213_nqoaa5qspvr96bt9.eot#iefix) format("embedded-opentype"),url(https://at.alicdn.com/t/font_610213_nqoaa5qspvr96bt9.woff) format("woff"),url(https://at.alicdn.com/t/font_610213_nqoaa5qspvr96bt9.ttf) format("truetype"),url(https://at.alicdn.com/t/font_610213_nqoaa5qspvr96bt9.svg#iconfont) format("svg")
+}
+
+.xuicon {
+	display: inline-block;
+	font-style: normal;
+	vertical-align: baseline;
+	text-align: center;
+	text-transform: none;
+	line-height: 1;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale
+}
+
+.xuicon:before {
+	display: block;
+	font-family: xuicon!important
+}
+
+.xuicon-web_ic_all_h:before {
+	content: "\e605"
+}
+
+.xuicon-web_ic_all_n:before {
+	content: "\e606"
+}
+
+.xuicon-web_ic_play_m_N:before {
+	content: "\e60d"
+}
+
+.xuicon-web_ic_play_l:before {
+	content: "\e60e"
+}
+
+.xuicon-web_ic_play_s_h:before {
+	content: "\e60f"
+}
+
 .container{
 	@include wh(300px,200px);
 	border:1px solid red;
