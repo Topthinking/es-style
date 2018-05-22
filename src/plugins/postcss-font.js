@@ -37,7 +37,7 @@ export default postcss.plugin('postcss-font', ({
 								let new_src = '', src = '', filename = url.split('/').pop(), ext = url.split('/').pop().split('.').pop();
 
 								//新的文件名称
-								filename = filename + '_' + md5(item).substr(0, 7) + '.' + ext
+								filename = filename.split('.').shift() + '_' + md5(item).substr(0, 7) + '.' + ext
 
 								let fontDir = join(path, fontOptions.path)
 								let realPath = join(fontDir, filename)
