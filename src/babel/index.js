@@ -105,6 +105,9 @@ let _tmpPlugin = []
 _plugins.length && _plugins.map(item => _tmpPlugin.indexOf(item[0]) === -1 && _tmpPlugin.push(item[0]) && plugins.push(require(item[0])(item[1])))	
 _tmpPlugin = []
 
+//第一次执行
+let FirstExecuteStyle = true
+
 export default ({ types: t }) => {
 	return {
 		visitor: {
@@ -161,7 +164,12 @@ export default ({ types: t }) => {
 								if (!fsExtra.existsSync(path)) {
 									fsExtra.mkdirpSync(path)
 								}
-								fsExtra.appendFileSync(join(path, 'main.css'), state.css)
+								let css = state.css
+								if (FirstExecuteStyle) { 
+									css = `/*!\n* es-style\n* https://github.com/topthinking/es-style\n*\n* Released under MIT license. Copyright (c) 2018 GitHub Inc.\n*/`	+ css
+									FirstExecuteStyle = false
+								}
+								fsExtra.appendFileSync(join(path, 'main.css'), css)
 							}
 						}
 					} else {
