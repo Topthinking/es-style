@@ -101,8 +101,8 @@ export default postcss.plugin('postcss-font', ({
 										request.get(url).pipe(memoryFs.createWriteStream(new_src))
 									}
 								}
-								
-								
+
+								decl.value = decl.value.replace(url, new_src)								
 							})
 						}
 					}
