@@ -7,6 +7,10 @@
 ## 体验
 
 ```shell
+npm install
+```
+
+```shell
 npm run ssr
 ```
 
@@ -35,7 +39,7 @@ babel 配置
     "es-style/babel",{
       "type": "attribute", //默认是 `class`， 当前配置样式选择器是元素属性
       "imageOptions": {
-        "dir":"images/",
+        "path": "images/",  //图片资源存放的目录
         "limit": 5000
       }
     }
@@ -43,7 +47,7 @@ babel 配置
 }
 ```
 
-开发环境需配合express来搭建服务，具体配置参考`test/spa/server/index.js`
+开发环境需配合express来搭建服务，具体配置参考`examples/spa/server/index.js`
 
 如果不配置的话，会导致图片资源访问不了
 ```js
@@ -147,7 +151,7 @@ export default () => (
 
     }]
   ],
-  "limit": 50  //允许 <=50 字节的图片或者字体文件转换成base64
+  "limit": 50  //允许 <=50 字节的图片文件转换成base64
 }
 ```
 

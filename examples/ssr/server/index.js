@@ -7,10 +7,10 @@ const render = require('./render')
 import watch from '../../../watch'
 
 function clearConsole() {
-  //process.stdout.write(process.platform === 'win32' ? '\x1B[2J\x1B[0f' : '\x1B[2J\x1B[3J\x1B[H');
+  process.stdout.write(process.platform === 'win32' ? '\x1B[2J\x1B[0f' : '\x1B[2J\x1B[3J\x1B[H');
 }
 
-const port = 3001
+const port = 3000
 const app = express()
 const compiler = watch(webpack(webpackWeb),app)
 
