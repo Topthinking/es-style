@@ -1,7 +1,9 @@
 // npm publish
 const path = require('path')
 const del = require('del')
-const child_process = require('child_process');
+const fs = require('fs')
+const beautify = require('js-beautify').js_beautify
+const child_process = require('child_process')
 
 const clean = async () => {
 	await del(path.join(__dirname, 'publish'), { force: true })
@@ -24,7 +26,12 @@ const main = async () => {
 
 	await copy('./README.md', './publish')
 	await copy('./License', './publish')
-	await copy('./package.json', './publish')
+
+	const data = JSON.parse(fs.readFileSync('./package.json', 'utf-8'))
+	
+	delete data.scripts.postinstall
+
+	fs.writeFileSync('./publish/package.json', beautify(JSON.stringify(data), { indent_size: 2 }))	
 }
 
 module.exports = main()

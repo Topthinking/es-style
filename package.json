@@ -1,6 +1,6 @@
 {
   "name": "es-style",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "license": "MIT",
   "description": "easy stylesheet style",
   "files": [
@@ -20,29 +20,14 @@
       "transform-runtime"
     ]
   },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "jsx"
-    ],
-    "moduleNameMapper": {
-      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
-      ".*\\.(css|less|scss)$": "<rootDir>/__mocks__/styleMock.js"
-    },
-    "transform": {
-      "^.+\\.js$": "babel-jest"
-    }
-  },
   "scripts": {
     "dev": "taskr",
-    "postinstall":"npm run release",
+    "postinstall": "npm run release",
     "release": "taskr release",
     "build": "npm run release && npm run start",
     "start": "node publish.js && cd publish && npm publish",
     "spa": "cd examples/spa && npm run dev",
-    "ssr": "cd examples/ssr && npm run dev",
-    "spa_build": "cd examples/spa && npm run build",
-    "test": "jest"
+    "ssr": "cd examples/ssr && npm run dev"
   },
   "repository": {
     "type": "git",
@@ -68,13 +53,11 @@
     "babel-preset-react": "^6.24.1",
     "babel-preset-stage-0": "^6.24.1",
     "babel-register": "^6.26.0",
+    "connect-history-api-fallback": "^1.5.0",
     "del": "^3.0.0",
-    "enzyme": "^3.3.0",
-    "enzyme-adapter-react-15": "^1.0.5",
-    "enzyme-adapter-react-16": "^1.1.1",
     "express": "^4.16.2",
     "html-webpack-plugin": "^2.30.1",
-    "jest": "^22.4.2",
+    "js-beautify": "^1.7.5",
     "node-notifier": "^5.2.1",
     "postcss-plugin-px2rem": "^0.7.0",
     "react": "^16.2.0",
@@ -84,25 +67,24 @@
     "taskr": "^1.1.0",
     "webpack": "^3.10.0",
     "webpack-dev-middleware": "^2.0.3",
-    "webpack-hot-middleware": "^2.21.0",
-    "connect-history-api-fallback": "^1.5.0"
+    "webpack-hot-middleware": "^2.21.0"
   },
   "dependencies": {
-    "autoprefixer": "^8.2.0",
-    "chokidar": "^2.0.3",
-    "clean-css": "^4.1.11",
-    "deasync": "^0.1.12",
-    "del": "^3.0.0",
-    "find-up": "^2.1.0",
-    "fs-extra": "^5.0.0",
-    "md5": "^2.2.1",
-    "memory-fs": "^0.4.1",
-    "mime": "^2.3.1",
-    "node-sass": "^4.8.3",
-    "postcss": "^6.0.21",
-    "request": "^2.87.0",
-    "require-resolve": "^0.0.2",
-    "spritesmith": "^3.3.0",
-    "string-hash": "^1.1.3"
+    "autoprefixer": "8.5.0",
+    "chokidar": "2.0.3",
+    "clean-css": "4.1.11",
+    "deasync": "0.1.13",
+    "del": "3.0.0",
+    "find-up": "2.1.0",
+    "fs-extra": "6.0.1",
+    "md5": "2.2.1",
+    "memory-fs": "0.4.1",
+    "mime": "2.3.1",
+    "node-sass": "4.9.0",
+    "postcss": "6.0.22",
+    "request": "2.87.0",
+    "require-resolve": "0.0.2",
+    "spritesmith": "3.3.0",
+    "string-hash": "1.1.3"
   }
 }
