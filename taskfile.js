@@ -6,7 +6,12 @@ export async function dev (task, opts) {
 }
 
 export async function build(task, opts) { 
-  await task.source(opts.src || 'src/**/*.js').babel().target('dist/')
+  await task.source(opts.src || 'src/**/*.js').babel().uglify({
+    compress: {
+      drop_console: true,
+      join_vars: true
+    }
+  }).target('dist/')
   notify('Compiled src files')
 }
 
