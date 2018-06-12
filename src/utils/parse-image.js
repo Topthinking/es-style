@@ -29,7 +29,7 @@ export default ({
 	if (!/^http(s)?:|^\/\//.test(url)) {							
 		const mod = requireResolve(url, resolve(reference))
 		if (!mod || !mod.src) {
-			console.error(`Path '${url}' could not be found for '${reference}'`);
+			throw new Error(`Path '${url}' could not be found for '${reference}'`);
 			if (/production|test/.test(process.env.NODE_ENV)) { 
 				process.exit(1)
 			}

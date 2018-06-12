@@ -54,8 +54,6 @@ export default postcss.plugin('postcss-sprites', (options = {}) => {
 				opts.logger(`${spritesheets.length} ${spritesheets.length > 1 ? 'spritesheets' : 'spritesheet'} generated.`);
 			})
 			.catch((err) => {
-				console.error(`postcss-sprites: An error occurred while processing files - ${err.message}`);
-				console.error(err.stack);
 				throw err;
 			});
 	}

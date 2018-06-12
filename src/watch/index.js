@@ -63,7 +63,7 @@ module.exports =  function (compiler, app = null, donecallback = null) {
       watch(); 
       donecallback && donecallback(stats);
     } catch (error) {
-      console.log(error)
+      throw error
     }           
   });
   return compiler;

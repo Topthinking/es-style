@@ -60,7 +60,7 @@ if (sprites) {
 	if (spritesOptions.spritePath) { 
 		//删掉存放雪碧图的目录
 		if (spritesOptions.spritePath === '.es-style') { 
-			console.log('spritePath 不能设置为 .es-style')
+			throw new Error('spritePath 不能设置为 .es-style')
 			process.exit()
 		}
 		del(join(process.cwd(), spritesOptions.spritePath), { force: true })		
@@ -264,29 +264,33 @@ export default ({ types: t }) => {
 						}
 
 						const id = path.node.specifiers[0].local.name
-						const content = parseImage({
-							url: givenPath,
-							reference,
-							write,
-							imageOptions,
-							path: exportPath,
-							publicPath,
-							fileSystem
-						})
-						
-						const variable = t.variableDeclarator(t.identifier(id), t.stringLiteral(content))
-
-						path.replaceWith({
-							type: 'VariableDeclaration',
-							kind: 'const',
-							declarations: [variable],
-							leadingComments: [
-								{
-									type: 'CommentBlock',
-									value: `es-style '${givenPath}' `
-								}
-							]
-						})
+						try {
+							const content = parseImage({
+								url: givenPath,
+								reference,
+								write,
+								imageOptions,
+								path: exportPath,
+								publicPath,
+								fileSystem
+							})
+							
+							const variable = t.variableDeclarator(t.identifier(id), t.stringLiteral(content))
+	
+							path.replaceWith({
+								type: 'VariableDeclaration',
+								kind: 'const',
+								declarations: [variable],
+								leadingComments: [
+									{
+										type: 'CommentBlock',
+										value: `es-style '${givenPath}' `
+									}
+								]
+							})
+						} catch (err) { 
+							throw err
+						}						
 					}
 				}
 			},
@@ -302,15 +306,16 @@ export default ({ types: t }) => {
 						styleId = result.styleId
 						wait = false
 					}).catch(err => {
-						console.log(err)
+						wait = false
 						css = err
-					})
+					})					
+
+					loopWhile(() => wait)
+
 
 					if (css instanceof Error) {
 						throw css
 					}
-
-					loopWhile(() => wait)
 					
 					state.hasParseStyle = true
 

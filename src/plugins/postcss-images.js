@@ -24,16 +24,20 @@ export default postcss.plugin('postcss-images', ({
 							} else { 
 								url = url.substr(0, url.length - 1)								
 							}
-							const itemValue = item.replace(url, parseImage({
-								url,
-								reference: root.source.input.file,
-								write,
-								imageOptions, 
-								path,
-								publicPath,
-								fileSystem
-							}))								
-							decl.value = decl.value.replace(item, itemValue)							
+							try {
+								const itemValue = item.replace(url, parseImage({
+									url,
+									reference: root.source.input.file,
+									write,
+									imageOptions,
+									path,
+									publicPath,
+									fileSystem
+								}))
+								decl.value = decl.value.replace(item, itemValue)
+							} catch (err) { 
+								throw err
+							}
 						}	
 					})																				
 				}
