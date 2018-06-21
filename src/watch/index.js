@@ -43,7 +43,7 @@ const watch = () => {
 let isWatch = false;
 
 // express中间件
-export const ExpressWatch = (compiler, app = null, donecallback = null) => {
+const ExpressWatch = (compiler, app = null, donecallback = null) => {
   if (isWatch) {
     return;
   }
@@ -77,7 +77,7 @@ export const ExpressWatch = (compiler, app = null, donecallback = null) => {
 };
 
 // koa 中间件
-export const KoaWatch = (compiler, app = null, donecallback = null) => {
+const KoaWatch = (compiler, app = null, donecallback = null) => {
   if (isWatch) {
     return;
   }
@@ -109,4 +109,7 @@ export const KoaWatch = (compiler, app = null, donecallback = null) => {
   return compiler;
 };
 
-module.exports = ExpressWatch;
+module.exports = {
+  ExpressWatch,
+  KoaWatch,
+};
