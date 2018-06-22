@@ -92,7 +92,7 @@ const KoaMiddleware = () => {
 };
 
 // koa 中间件
-const KoaWatch = (compiler, app = null, donecallback = null) => {
+const KoaWatch = (compiler, donecallback = null) => {
   if (isWatch) {
     return;
   }
