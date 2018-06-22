@@ -76,6 +76,21 @@ const ExpressWatch = (compiler, app = null, donecallback = null) => {
   return compiler;
 };
 
+//es-style-koa-middleware
+const KoaMiddleware = () => {
+  return async (ctx, next) => {
+    if (/^\/static\//.test(ctx.request.url)) {
+      if (memoryFs.existsSync(ctx.request.url)) {
+        ctx.status = 200;
+        ctx.type = 'jpg';
+        ctx.body = memoryFs.readFileSync(ctx.request.url);
+        return;
+      }
+    }
+    await next();
+  };
+};
+
 // koa 中间件
 const KoaWatch = (compiler, app = null, donecallback = null) => {
   if (isWatch) {
@@ -85,19 +100,7 @@ const KoaWatch = (compiler, app = null, donecallback = null) => {
   const { path, publicPath } = compiler.options.output;
 
   set({ path, publicPath });
-  if (app != null && typeof app.use != 'undefined') {
-    app.use(async (ctx, next) => {
-      if (/^\/static\//.test(ctx.request.url)) {
-        if (memoryFs.existsSync(ctx.request.url)) {
-          ctx.status = 200;
-          ctx.type = 'jpg';
-          ctx.body = memoryFs.readFileSync(req.url);
-          return;
-        }
-      }
-      await next();
-    });
-  }
+
   compiler.plugin('done', async (stats) => {
     try {
       watch();
@@ -111,5 +114,6 @@ const KoaWatch = (compiler, app = null, donecallback = null) => {
 
 module.exports = {
   ExpressWatch,
+  KoaMiddleware,
   KoaWatch,
 };
