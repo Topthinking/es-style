@@ -1,4 +1,5 @@
 import systemFs from 'fs-extra';
+import { extname } from 'path';
 import chokidar from 'chokidar';
 import memoryFs, { set } from './fs';
 import { watchImport, clearPaths } from './watch-import';
@@ -90,7 +91,7 @@ const KoaWatch = (compiler, app = null, donecallback = null) => {
       if (/^\/static\//.test(ctx.request.url)) {
         if (memoryFs.existsSync(ctx.request.url)) {
           ctx.status = 200;
-          ctx.type = 'jpg';
+          ctx.type = extname(ctx.request.url);
           ctx.body = memoryFs.readFileSync(ctx.request.url);
           return;
         }
