@@ -1,4 +1,6 @@
 import _hashString from 'string-hash';
+import fs from 'fs-extra';
+import path from 'path';
 
 let uniqueIds = [];
 
@@ -111,16 +113,33 @@ export const shouldBeParseImage = (path) => {
   return false;
 };
 
+const configFile = path.join(process.cwd(), '.es.json');
+
 export const hashString = (str) => {
   if (/production|test/.test(process.env.NODE_ENV || '')) {
-    let tmp = ch[rnd()] + ch[rnd()] + ch[rnd()] + ch[rnd()];
+    str = _hashString(str);
+    let config = {};
 
-    while (uniqueIds.indexOf(tmp) !== -1) {
-      tmp = ch[rnd()] + ch[rnd()] + ch[rnd()] + ch[rnd()];
+    if (fs.existsSync(configFile)) {
+      config = JSON.parse(fs.readFileSync(configFile, 'utf-8'));
     }
 
-    uniqueIds.push(tmp);
-    return tmp;
+    if (config[str]) {
+      return config[str];
+    } else {
+      let tmp = ch[rnd()] + ch[rnd()] + ch[rnd()] + ch[rnd()];
+
+      // 不存在 且 首位不为数字
+      while (uniqueIds.indexOf(tmp) !== -1 || /\d/.test(tmp.slice(0, 1))) {
+        tmp = ch[rnd()] + ch[rnd()] + ch[rnd()] + ch[rnd()];
+      }
+      config[str] = tmp;
+      uniqueIds.push(tmp);
+
+      fs.writeFileSync(configFile, JSON.stringify(config));
+
+      return tmp;
+    }
   } else {
     return 'e-' + String(_hashString(str));
   }

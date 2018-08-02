@@ -1,10 +1,9 @@
 import postcss from 'postcss';
-import { STYLE_DATA_ES } from '../utils/constant';
 
 export default postcss.plugin('postcss-selector', (options = {}) => {
-  let uniqueInfo = `.${STYLE_DATA_ES}${options.styleId}`;
+  let uniqueInfo = `.${options.styleId}`;
   if (options.styleType === 'attribute') {
-    uniqueInfo = `[data-${STYLE_DATA_ES}${options.styleId}]`;
+    uniqueInfo = `[data-${options.styleId}]`;
   }
 
   return (root) => {
@@ -16,12 +15,12 @@ export default postcss.plugin('postcss-selector', (options = {}) => {
         }
       }
 
-      //格式化选择器，存在伪类
-      if (/:(:)?/.test(rule.selector)) {
-        // 判断是否是a,b这样的选择器
-        const selectors = rule.selector.split(',');
+      const selectors = rule.selector.split(',');
 
-        selectors.map((item, index) => {
+      selectors.map((item, index) => {
+        //格式化选择器，存在伪类
+        if (/:(:)?/.test(item)) {
+          // 判断是否是a,b这样的选择器
           //存在伪类,针对最后一个进行处理
           const _selector = item.split(' ');
 
@@ -38,14 +37,14 @@ export default postcss.plugin('postcss-selector', (options = {}) => {
           } else {
             item = item + uniqueInfo;
           }
-          selectors[index] = item;
-        });
+        } else {
+          item = item + uniqueInfo;
+        }
 
-        rule.selector = selectors.join(',');
-        return;
-      }
+        selectors[index] = item;
+      });
 
-      rule.selector = rule.selector + uniqueInfo;
+      rule.selector = selectors.join(',');
     });
   };
 });

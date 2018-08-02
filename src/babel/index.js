@@ -3,12 +3,8 @@ import * as t from 'babel-types';
 import del from 'del';
 import { resolve, join } from 'path';
 import requireResolve from 'require-resolve';
-import {
-  isObject,
-  shouldBeParseStyle,
-  shouldBeParseImage,
-  hashString,
-} from '../utils';
+import hashString from 'string-hash';
+import { isObject, shouldBeParseStyle, shouldBeParseImage } from '../utils';
 import parseImage from '../utils/parse-image';
 import fs from '../watch/fs';
 import fsExtra from 'fs-extra';
@@ -19,7 +15,6 @@ import Config from '../utils/config';
 
 import {
   STYLE_COMPONENT,
-  STYLE_DATA_ES,
   STYLE_COMPONENT_CSS,
   STYLE_COMPONENT_STYLEID,
 } from '../utils/constant';
@@ -43,7 +38,7 @@ const styleElement = (state, t) => {
       t.jSXAttribute(
         t.jSXIdentifier(STYLE_COMPONENT_STYLEID),
         t.jSXExpressionContainer(
-          t.stringLiteral(state.styleId || state.globalId),
+          t.stringLiteral(String(state.styleId || state.globalId)),
         ),
       ),
       t.jSXAttribute(
@@ -381,7 +376,7 @@ export default ({ types: t }) => {
           state.hasParseStyle = true;
 
           state.styleId = styleId;
-          state.globalId = globalStyle === '' ? 0 : hashString(globalStyle);
+          state.globalId = globalStyle === '' ? '0' : hashString(globalStyle);
 
           if (position === 'external') {
             if (styleIds.indexOf(state.styleId) === -1) {
@@ -512,7 +507,7 @@ export default ({ types: t }) => {
                 if (t.isJSXExpressionContainer(item.value)) {
                   item.value = t.JSXExpressionContainer(
                     concat(
-                      t.StringLiteral(STYLE_DATA_ES + styleId + ' '),
+                      t.StringLiteral(styleId + ' '),
                       item.value.expression,
                     ),
                   );
@@ -521,10 +516,7 @@ export default ({ types: t }) => {
                 //值是字符串
                 if (t.isStringLiteral(item.value)) {
                   item.value = t.JSXExpressionContainer(
-                    concat(
-                      t.StringLiteral(STYLE_DATA_ES + styleId + ' '),
-                      item.value,
-                    ),
+                    concat(t.StringLiteral(styleId + ' '), item.value),
                   );
                 }
 
@@ -537,7 +529,7 @@ export default ({ types: t }) => {
             path.node.attributes.push(
               t.JSXAttribute(
                 t.JSXIdentifier('className'),
-                t.StringLiteral(STYLE_DATA_ES + styleId),
+                t.StringLiteral(styleId),
               ),
             );
           }
@@ -545,7 +537,7 @@ export default ({ types: t }) => {
           if (styleId !== 0) {
             path.node.attributes.push(
               t.JSXAttribute(
-                t.JSXIdentifier(`data-${STYLE_DATA_ES}${styleId}`),
+                t.JSXIdentifier(`data-${styleId}`),
                 t.StringLiteral(''),
               ),
             );

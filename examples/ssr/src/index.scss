@@ -58,6 +58,11 @@
   }
 }
 
+.container,
+h1 {
+  color: red;
+}
+
 .container:hover {
   background-image: url(./bg.jpg);
 }
