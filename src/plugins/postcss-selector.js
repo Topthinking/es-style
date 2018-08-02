@@ -2,9 +2,9 @@ import postcss from 'postcss';
 import { STYLE_DATA_ES } from '../utils/constant';
 
 export default postcss.plugin('postcss-selector', (options = {}) => {
-  let uniqueInfo = `.${STYLE_DATA_ES}-${options.styleId}`;
+  let uniqueInfo = `.${STYLE_DATA_ES}${options.styleId}`;
   if (options.styleType === 'attribute') {
-    uniqueInfo = `[data-${STYLE_DATA_ES}-${options.styleId}]`;
+    uniqueInfo = `[data-${STYLE_DATA_ES}${options.styleId}]`;
   }
 
   return (root) => {
