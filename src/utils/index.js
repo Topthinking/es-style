@@ -68,7 +68,6 @@ const ch = [
   '8',
   '9',
   '_',
-  '-',
 ];
 
 const chlength = ch.length;
@@ -130,7 +129,7 @@ export const hashString = (str) => {
       let tmp = ch[rnd()] + ch[rnd()] + ch[rnd()] + ch[rnd()];
 
       // 不存在 且 首位不为数字
-      while (uniqueIds.indexOf(tmp) !== -1 || /\d/.test(tmp.slice(0, 1))) {
+      while (uniqueIds.indexOf(tmp) !== -1 || /^\d/.test(tmp)) {
         tmp = ch[rnd()] + ch[rnd()] + ch[rnd()] + ch[rnd()];
       }
       config[str] = tmp;
