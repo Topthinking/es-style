@@ -67,6 +67,7 @@ const ch = [
   '7',
   '8',
   '9',
+  '-',
   '_',
 ];
 
@@ -74,6 +75,10 @@ const chlength = ch.length;
 
 function rnd() {
   return Math.floor(Math.random() * chlength);
+}
+
+function randomValue() {
+  return ch[rnd()] + ch[rnd()] + ch[rnd()] + ch[rnd()];
 }
 
 export const isObject = (obj) => {
@@ -123,19 +128,34 @@ export const hashString = (str) => {
       config = JSON.parse(fs.readFileSync(configFile, 'utf-8'));
     }
 
-    if (config[str]) {
-      return config[str];
-    } else {
-      let tmp = ch[rnd()] + ch[rnd()] + ch[rnd()] + ch[rnd()];
+    // 针对配置文件进行去重
+    const uniqueValue = [];
+    const _config = {};
 
-      // 不存在 且 首位不为数字
-      while (uniqueIds.indexOf(tmp) !== -1 || /^\d/.test(tmp)) {
-        tmp = ch[rnd()] + ch[rnd()] + ch[rnd()] + ch[rnd()];
+    for (let key in config) {
+      if (uniqueValue.indexOf(config[key]) === -1) {
+        uniqueValue.push(config[key]);
+        _config[key] = config[key];
       }
-      config[str] = tmp;
+    }
+
+    if (_config[str]) {
+      return _config[str];
+    } else {
+      let tmp = randomValue();
+
+      // 如果随机值已经存在，或者随机值以数字开头，都需要重新随机
+      while (
+        /^\d/.test(tmp) ||
+        uniqueIds.indexOf(tmp) !== -1 ||
+        uniqueValue.indexOf(tmp) !== -1
+      ) {
+        tmp = randomValue();
+      }
+      _config[str] = tmp;
       uniqueIds.push(tmp);
 
-      fs.writeFileSync(configFile, JSON.stringify(config));
+      fs.writeFileSync(configFile, JSON.stringify(_config));
 
       return tmp;
     }
