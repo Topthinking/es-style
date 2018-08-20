@@ -146,7 +146,7 @@ export const hashString = (str) => {
 
       // 如果随机值已经存在，或者随机值以数字开头，都需要重新随机
       while (
-        /^\d/.test(tmp) ||
+        !/^[a-zA-z]/.test(tmp) ||
         uniqueIds.indexOf(tmp) !== -1 ||
         uniqueValue.indexOf(tmp) !== -1
       ) {
