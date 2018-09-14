@@ -26,6 +26,7 @@ let styleIds = [],
   globalIds = [];
 
 const styleElement = (state, t) => {
+  const reference = state && state.file && state.file.opts.filename;
   if (
     (state.styles.global.length || state.styles.jsx.length) &&
     state.css !== ''
@@ -39,6 +40,12 @@ const styleElement = (state, t) => {
         t.jSXIdentifier(STYLE_COMPONENT_STYLEID),
         t.jSXExpressionContainer(
           t.stringLiteral(String(state.styleId || state.globalId)),
+        ),
+      ),
+      t.jSXAttribute(
+        t.jSXIdentifier('file'),
+        t.jSXExpressionContainer(
+          t.stringLiteral('"' + hashString(reference) + '"'),
         ),
       ),
       t.jSXAttribute(
@@ -137,6 +144,14 @@ _tmpPlugin = [];
 
 //第一次执行
 let FirstExecuteStyle = true;
+
+//存储样式
+if (!global['es-style']) {
+  global['es-style'] = {
+    es: {}, // 存放css module
+    style: '', // 存放公共css资源
+  };
+}
 
 export default ({ types: t }) => {
   return {
@@ -270,29 +285,35 @@ export default ({ types: t }) => {
 
           givenPath = mod.src;
 
+          let parse = true;
           if (typeof state.styleSourceMap[givenPath] === 'undefined') {
             state.styleSourceMap[givenPath] = [reference];
           } else {
-            if (state.styleSourceMap[givenPath].indexOf(reference) !== -1) {
+            if (state.styleSourceMap[givenPath].indexOf(reference) === -1) {
               state.styleSourceMap[givenPath].push(reference);
+            } else {
+              parse = false;
+              path.remove();
             }
           }
 
-          const css = content(givenPath, reference);
+          if (parse) {
+            const css = content(givenPath, reference);
 
-          //需要做当前jsx的解析工作
-          if (globalStyle) {
-            state.styles.global.push({
-              from: givenPath,
-              css,
-            });
-          } else {
-            state.styles.jsx.push({
-              from: givenPath,
-              css,
-            });
+            //需要做当前jsx的解析工作
+            if (globalStyle) {
+              state.styles.global.push({
+                from: givenPath,
+                css,
+              });
+            } else {
+              state.styles.jsx.push({
+                from: givenPath,
+                css,
+              });
+            }
+            path.remove();
           }
-          path.remove();
         }
 
         //引用图片
@@ -378,25 +399,26 @@ export default ({ types: t }) => {
           state.styleId = styleId;
           state.globalId = globalStyle === '' ? '0' : hashString(globalStyle);
 
-          if (position === 'external') {
-            if (styleIds.indexOf(state.styleId) === -1) {
-              //没有重复的局部样式
-              styleIds.push(state.styleId);
-              css = css + JsxStyle;
-            }
+          const reference = state && state.file && state.file.opts.filename;
 
-            if (
-              state.globalId !== 0 &&
-              globalIds.indexOf(state.globalId) === -1
-            ) {
-              //没有重复的全局样式
-              globalIds.push(state.globalId);
-              css = css + globalStyle;
-            }
-            state.css = css;
-          } else {
-            state.css = globalStyle + JsxStyle;
+          //if (position === 'external') {
+          if (styleIds.indexOf(state.styleId) === -1) {
+            //没有重复的局部样式
+            styleIds.push(state.styleId);
+            css = css + JsxStyle;
+            global['es-style']['es'][reference] = JsxStyle;
           }
+
+          if (
+            state.globalId !== 0 &&
+            globalIds.indexOf(state.globalId) === -1
+          ) {
+            //没有重复的全局样式
+            globalIds.push(state.globalId);
+            css = css + globalStyle;
+            global['es-style']['style'] += globalStyle;
+          }
+          state.css = css;
         }
 
         //JSXElement是一个对象
