@@ -1,28 +1,28 @@
-import React from 'react'
-import { flush } from '../style'
+import React from 'react';
+import { flush } from '../style';
 
-export default function flushToReact() {
-  const mem = flush()
-  const arr = []
-  for (const [id, css] of mem) {
-    arr.push(
-      React.createElement('style', {
-        id: `${id}`,
-        key: `${id}`,
-        dangerouslySetInnerHTML: {
-          __html: css
-        }
-      })
-    )
+const file = [];
+export default class JSXStyle extends React.Component {
+  componentWillMount() {
+    if (this.props.file && file.indexOf(this.props.file) === -1) {
+      file.push(this.props.file);
+    }
   }
-  return arr
+
+  render() {
+    return null;
+  }
+}
+
+export function flushStyleFile() {
+  return file;
 }
 
 export function flushToHTML() {
-  const mem = flush()
-  let html = ''
+  const mem = flush();
+  let html = '';
   for (const [id, css] of mem) {
-    html += `<style id="${id}">${css}</style>`
+    html += `<style id="${id}">${css}</style>`;
   }
-  return html
+  return html;
 }

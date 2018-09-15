@@ -5,8 +5,11 @@
   "main": "clean.js",
   "scripts": {
     "dev": "node server",
-    "build":"NODE_ENV=production webpack --config webpack.prod.config.js"
+    "build": "NODE_ENV=production webpack --config webpack.prod.config.js"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "webpack-cli": "^3.1.0"
+  }
 }

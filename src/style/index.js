@@ -1,43 +1,43 @@
-import { Component } from 'react'
-import StyleSheetRegistry from './stylesheet-registry'
+import { Component } from 'react';
+import StyleSheetRegistry from './stylesheet-registry';
 
-const styleSheetRegistry = new StyleSheetRegistry()
+const styleSheetRegistry = new StyleSheetRegistry();
 
 export default class JSXStyle extends Component {
   static dynamic(info) {
     return info
-      .map(tagInfo => {
-        const [baseId, props] = tagInfo
-        return styleSheetRegistry.computeId(baseId, props)
+      .map((tagInfo) => {
+        const [baseId, props] = tagInfo;
+        return styleSheetRegistry.computeId(baseId, props);
       })
-      .join(' ')
+      .join(' ');
   }
 
   componentWillMount() {
-    styleSheetRegistry.add(this.props)
+    styleSheetRegistry.add(this.props);
   }
 
   shouldComponentUpdate(nextProps) {
-    return this.props.css !== nextProps.css
+    return this.props.css !== nextProps.css;
   }
-  
+
   componentWillUpdate(nextProps) {
-    styleSheetRegistry.update(this.props, nextProps)
+    styleSheetRegistry.update(this.props, nextProps);
   }
 
   componentWillUnmount() {
     if (this.props.production) {
-      styleSheetRegistry.remove(this.props)
-    }  
+      styleSheetRegistry.remove(this.props);
+    }
   }
 
   render() {
-    return null
+    return null;
   }
 }
 
 export function flush() {
-  const cssRules = styleSheetRegistry.cssRules()
-  styleSheetRegistry.flush()
-  return new Map(cssRules)
+  const cssRules = styleSheetRegistry.cssRules();
+  styleSheetRegistry.flush();
+  return new Map(cssRules);
 }

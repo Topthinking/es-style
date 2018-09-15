@@ -3,3 +3,6 @@ dist
 publish
 test.sh
 .es-style
+package-lock.json
+.vscode
+.es.json

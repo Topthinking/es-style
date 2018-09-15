@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './page';
 
-import './index.scss';
+import './home.scss';
 
 if (process.env.NODE_ENV === 'production') {
   ReactDOM.render(
@@ -17,6 +17,7 @@ if (process.env.NODE_ENV === 'production') {
   ReactDOM.render(
     <AppContainer>
       <App />
+      <es-style />
     </AppContainer>,
     document.getElementById('root'),
   );

@@ -21,6 +21,10 @@ import {
 
 const concat = (a, b) => t.binaryExpression('+', a, b);
 
+const dev =
+  process.env.NODE_ENV === 'development' ||
+  typeof process.env.NODE_ENV === 'undefined';
+
 //记录样式是否出现重复的引用，主要用来做css导出使用的
 let styleIds = [],
   globalIds = [];
@@ -33,37 +37,42 @@ const styleElement = (state, t) => {
   ) {
     const attributes = [
       t.jSXAttribute(
-        t.jSXIdentifier(STYLE_COMPONENT_CSS),
-        t.jSXExpressionContainer(t.stringLiteral(state.css)),
-      ),
-      t.jSXAttribute(
-        t.jSXIdentifier(STYLE_COMPONENT_STYLEID),
-        t.jSXExpressionContainer(
-          t.stringLiteral(String(state.styleId || state.globalId)),
-        ),
-      ),
-      t.jSXAttribute(
         t.jSXIdentifier('file'),
         t.jSXExpressionContainer(
-          t.stringLiteral('"' + hashString(reference) + '"'),
-        ),
-      ),
-      t.jSXAttribute(
-        t.jSXIdentifier('production'),
-        t.jSXExpressionContainer(
-          t.BooleanLiteral(process.env.NODE_ENV === 'production'),
+          t.stringLiteral(String(hashString(reference))),
         ),
       ),
     ];
+
+    if (dev) {
+      attributes.push(
+        t.jSXAttribute(
+          t.jSXIdentifier(STYLE_COMPONENT_CSS),
+          t.jSXExpressionContainer(t.stringLiteral(state.css)),
+        ),
+        t.jSXAttribute(
+          t.jSXIdentifier(STYLE_COMPONENT_STYLEID),
+          t.jSXExpressionContainer(
+            t.stringLiteral(String(state.styleId || state.globalId)),
+          ),
+        ),
+        t.jSXAttribute(
+          t.jSXIdentifier('production'),
+          t.jSXExpressionContainer(
+            t.BooleanLiteral(process.env.NODE_ENV === 'production'),
+          ),
+        ),
+      );
+    }
 
     return t.jSXElement(
       t.jSXOpeningElement(t.jSXIdentifier(STYLE_COMPONENT), attributes, true),
       null,
       [],
     );
-  } else {
-    return null;
   }
+
+  return null;
 };
 
 const config = Config({
@@ -153,15 +162,13 @@ if (!global['es-style']) {
   };
 }
 
-export default ({ types: t }) => {
+module.exports = ({ types: t }) => {
   return {
     visitor: {
       //全局import es-style 和处理一些全局的变量
       Program: {
         enter(path, state) {
-          let position =
-            (state && state.opts && state.opts.position) || 'inline';
-
+          const server = (state && state.opts && state.opts.server) || false;
           if (typeof state.styles === 'undefined') {
             state.styles = {
               global: [],
@@ -171,29 +178,36 @@ export default ({ types: t }) => {
           }
 
           //插入import ‘es-style‘
-          if (position === 'inline') {
-            if (path.scope.hasBinding(STYLE_COMPONENT)) {
-              return;
-            }
+          if (path.scope.hasBinding(STYLE_COMPONENT)) {
+            return;
+          }
 
+          if (dev) {
             path.node.body.unshift(
               t.importDeclaration(
                 [t.importDefaultSpecifier(t.identifier(STYLE_COMPONENT))],
                 t.stringLiteral('es-style'),
               ),
             );
-
-            path.traverse({
-              JSXOpeningElement(path) {
-                if (
-                  path.node.name.name === 'es-style' ||
-                  path.node.name.name === 'es.style'
-                ) {
-                  state.hasEsStyleElement = true;
-                }
-              },
-            });
+          } else if (server) {
+            path.node.body.unshift(
+              t.importDeclaration(
+                [t.importDefaultSpecifier(t.identifier(STYLE_COMPONENT))],
+                t.stringLiteral('es-style/server'),
+              ),
+            );
           }
+
+          path.traverse({
+            JSXOpeningElement(path) {
+              if (
+                path.node.name.name === 'es-style' ||
+                path.node.name.name === 'es.style'
+              ) {
+                state.hasEsStyleElement = true;
+              }
+            },
+          });
         },
         exit(path, state) {
           if (
@@ -202,34 +216,7 @@ export default ({ types: t }) => {
           ) {
             return;
           }
-
-          let position =
-            (state && state.opts && state.opts.position) || 'inline';
-
-          if (position === 'external') {
-            const reference = state && state.file && state.file.opts.filename;
-            const write = (state && state.opts && state.opts.write) || true;
-
-            let exportPath = (state && state.opts && state.opts.path) || {
-              path: join(process.cwd(), 'style'),
-            };
-
-            if (state.css != '') {
-              if (write) {
-                if (!fsExtra.existsSync(exportPath)) {
-                  fsExtra.mkdirpSync(exportPath);
-                }
-                let css = state.css;
-                if (FirstExecuteStyle) {
-                  css =
-                    `/*!\n* es-style\n* https://github.com/topthinking/es-style\n*\n* Released under MIT license. Copyright (c) 2018 GitHub Inc.\n*/` +
-                    css;
-                  FirstExecuteStyle = false;
-                }
-                fsExtra.appendFileSync(join(exportPath, 'main.css'), css);
-              }
-            }
-          } else {
+          if (dev) {
             //写信息到内存文件中
             let map = state.styleSourceMap;
 
@@ -366,7 +353,7 @@ export default ({ types: t }) => {
       },
       //生成jsx的style对象，同时插入转译的样式资源
       JSXElement(path, state) {
-        let position = (state && state.opts && state.opts.position) || 'inline';
+        const server = (state && state.opts && state.opts.server) || false;
         if (
           !state.hasParseStyle &&
           (state.styles.global.length || state.styles.jsx.length)
@@ -401,7 +388,6 @@ export default ({ types: t }) => {
 
           const reference = state && state.file && state.file.opts.filename;
 
-          //if (position === 'external') {
           if (styleIds.indexOf(state.styleId) === -1) {
             //没有重复的局部样式
             styleIds.push(state.styleId);
@@ -418,7 +404,8 @@ export default ({ types: t }) => {
             css = css + globalStyle;
             global['es-style']['style'] += globalStyle;
           }
-          state.css = css;
+
+          state.css = globalStyle + JsxStyle;
         }
 
         //JSXElement是一个对象
@@ -435,10 +422,7 @@ export default ({ types: t }) => {
           name.charAt(0) !== name.charAt(0).toUpperCase() &&
           name !== 'style'
         ) {
-          let position =
-            (state && state.opts && state.opts.position) || 'inline';
-
-          if (position === 'external') {
+          if (!dev && !server) {
             if (name === 'es-style' || name === 'es.style') {
               path.remove();
             }
