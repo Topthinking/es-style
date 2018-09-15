@@ -1,7 +1,7 @@
 import React from 'react';
 import { flush } from '../style';
 
-const file = [];
+let file = [];
 export default class JSXStyle extends React.Component {
   componentWillMount() {
     if (this.props.file && file.indexOf(this.props.file) === -1) {
@@ -15,7 +15,9 @@ export default class JSXStyle extends React.Component {
 }
 
 export function flushStyleFile() {
-  return file;
+  const _file = [...file];
+  file = [];
+  return _file;
 }
 
 export function flushToHTML() {
