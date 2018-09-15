@@ -159,6 +159,7 @@ if (!global['es-style']) {
   global['es-style'] = {
     es: {}, // 存放css module
     style: '', // 存放公共css资源
+    js: [], // 引用css的js资源
   };
 }
 
@@ -387,6 +388,8 @@ module.exports = ({ types: t }) => {
           state.globalId = globalStyle === '' ? '0' : hashString(globalStyle);
 
           const reference = state && state.file && state.file.opts.filename;
+
+          global['es-style']['js'].push(reference);
 
           if (styleIds.indexOf(state.styleId) === -1) {
             //没有重复的局部样式

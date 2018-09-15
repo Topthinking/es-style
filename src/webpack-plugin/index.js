@@ -137,9 +137,17 @@ class Plugin {
         chunks.map((item) => {
           if (MyChunks[item.debugId]) {
             MyChunks[item.debugId].id = item.id;
-            MyChunks[item.debugId]['hash-bundle'] = hashString(
-              MyChunks[item.debugId].entry,
-            );
+            let jsFile = MyChunks[item.debugId].entry;
+            if (global['es-style']['js'].indexOf(jsFile) === -1) {
+              for (let i = 0; i < MyChunks[item.debugId].modules.length; i++) {
+                const module = MyChunks[item.debugId].modules[i];
+                if (global['es-style']['js'].indexOf(module) !== -1) {
+                  jsFile = module;
+                  break;
+                }
+              }
+            }
+            MyChunks[item.debugId]['hash-bundle'] = hashString(jsFile);
           }
         });
       });
