@@ -2,12 +2,16 @@ const webpack = require('webpack');
 const hashString = require('string-hash');
 const md5 = require('md5');
 const pluginName = 'EsStyleWebpackPlugin';
+const CleanCSS = require('clean-css');
 const { Template } = webpack;
-/**
- *
- * entry:1 -> main.js -> main.css
- *
- */
+
+const cleanStyle = (css) => {
+  const output = new CleanCSS({}).minify(css);
+  return output.styles;
+};
+
+const license = `/*!\n* es-style\n* https://github.com/topthinking/es-style\n*\n* Released under MIT license. Copyright (c) 2018 GitHub Inc.\n*/`;
+
 class Plugin {
   apply(compiler) {
     // 记录每个chunk对应的css module
@@ -318,12 +322,13 @@ class Plugin {
       // 生成公共样式文件
       if (CommonFile !== '') {
         map[0] = CommonFile;
+        const _style = license + cleanStyle(CommonStyle);
         compilation.assets[CommonFile] = {
           source() {
-            return CommonStyle;
+            return _style;
           },
           size() {
-            return CommonStyle.length;
+            return _style.length;
           },
         };
       }
@@ -339,12 +344,13 @@ class Plugin {
             } else {
               map[item.name] = item.fileName;
             }
+            const _style = license + cleanStyle(style);
             compilation.assets[item.hashName || item.fileName] = {
               source() {
-                return style;
+                return _style;
               },
               size() {
-                return style.length;
+                return _style.length;
               },
             };
           }
