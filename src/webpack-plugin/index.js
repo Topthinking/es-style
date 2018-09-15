@@ -135,10 +135,12 @@ class Plugin {
       // 添加chunkId
       compilation.hooks.afterOptimizeChunkIds.tap(pluginName, (chunks) => {
         chunks.map((item) => {
-          MyChunks[item.debugId].id = item.id;
-          MyChunks[item.debugId]['hash-bundle'] = hashString(
-            MyChunks[item.debugId].entry,
-          );
+          if (MyChunks[item.debugId]) {
+            MyChunks[item.debugId].id = item.id;
+            MyChunks[item.debugId]['hash-bundle'] = hashString(
+              MyChunks[item.debugId].entry,
+            );
+          }
         });
       });
 
@@ -177,12 +179,16 @@ class Plugin {
               '',
               `// ${pluginName} CSS loading`,
               `var cssChunks = ${JSON.stringify(chunkMap)};`,
+              `var jsonpString = jsonpScriptSrc.toString().replace('scripts','styles').replace(/return\\s(.*\\.p)/,'return _p');`,
+              `var fn = new Function('_p','return ' + jsonpString);`,
               'if(installedCssChunks[chunkId]) promises.push(installedCssChunks[chunkId]);',
               'else if(installedCssChunks[chunkId] !== 0 && cssChunks[chunkId]) {',
               Template.indent([
                 'promises.push(installedCssChunks[chunkId] = new Promise(function(resolve, reject) {',
                 Template.indent([
-                  `var fullhref = jsonpScriptSrc(chunkId).replace(/\\.js$/,'.css');`,
+                  `var fullhref = fn(${
+                    mainTemplate.requireFn
+                  }.p)(chunkId).replace(/\\.js$/,'.css');`,
                   `// 判断fullhref是否已经通过link加载`,
                   'var existingLinkTags = document.getElementsByTagName("link");',
                   'for(var i = 0; i < existingLinkTags.length; i++) {',
@@ -235,7 +241,10 @@ class Plugin {
             style = '';
           // 再判断当前是否是多入口，如果是多入口，则分开，否则还是算一个
           for (let debugId in MyChunks) {
-            if (typeof MyChunks[debugId].name === 'string') {
+            if (
+              typeof MyChunks[debugId].name === 'string' &&
+              debugId === chunk.debugId
+            ) {
               style = MyChunks[debugId].style;
               entry++;
             }
@@ -309,10 +318,12 @@ class Plugin {
       // 整理hash后的文件依赖
       compilation.hooks.additionalChunkAssets.tap(pluginName, (chunks) => {
         chunks.map((item) => {
-          MyChunks[item.debugId].fileName = item.files[0].replace(
-            /\.js$/,
-            '.css',
-          );
+          if (MyChunks[item.debugId]) {
+            MyChunks[item.debugId].fileName = item.files[0]
+              .split('/')
+              .pop()
+              .replace(/\.js$/, '.css');
+          }
         });
       });
     });
@@ -323,7 +334,7 @@ class Plugin {
       if (CommonFile !== '') {
         map[0] = CommonFile;
         const _style = license + cleanStyle(CommonStyle);
-        compilation.assets[CommonFile] = {
+        compilation.assets['styles/' + CommonFile] = {
           source() {
             return _style;
           },
@@ -345,7 +356,7 @@ class Plugin {
               map[item.name] = item.fileName;
             }
             const _style = license + cleanStyle(style);
-            compilation.assets[item.hashName || item.fileName] = {
+            compilation.assets['styles/' + (item.hashName || item.fileName)] = {
               source() {
                 return _style;
               },
@@ -359,7 +370,7 @@ class Plugin {
 
       // 生成提供服务器使用的css文件的map
       map = JSON.stringify(map);
-      compilation.assets['style.map.json'] = {
+      compilation.assets['map.json'] = {
         source() {
           return map;
         },

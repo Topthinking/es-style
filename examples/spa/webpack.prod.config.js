@@ -1,21 +1,24 @@
 const { resolve, join } = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-
+const ManifestPlugin = require('webpack-manifest-plugin');
 const EsStyleBabelPlugin = require('../../babel');
 const EsStyleWebpackPlugin = require('../../src/webpack-plugin/index');
 
 module.exports = {
-  entry: {
-    index: join(__dirname, './src/index.js'),
-  },
+  entry: join(__dirname, './src/index.js'),
   output: {
     path: resolve(__dirname, './dist'),
     publicPath: './',
-    filename: '[hash:5].js',
+    filename: '[name].js',
     chunkFilename: '[chunkhash:5].js',
   },
-  mode: 'production',
+  optimization: {
+    runtimeChunk: {
+      name: 'manifest',
+    },
+  },
+  mode: 'none',
   module: {
     rules: [
       {
@@ -42,6 +45,7 @@ module.exports = {
     ],
   },
   plugins: [
+    new ManifestPlugin(),
     new EsStyleWebpackPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
     new HtmlWebpackPlugin({
@@ -50,4 +54,7 @@ module.exports = {
       inject: true,
     }),
   ],
+  resolveLoader: {
+    modules: ['node_modules', join(__dirname, 'loaders')],
+  },
 };

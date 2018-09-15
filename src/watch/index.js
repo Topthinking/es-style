@@ -66,7 +66,7 @@ const ExpressWatch = (compiler, app = null, donecallback = null) => {
       next();
     });
   }
-  compiler.plugin('done', async (stats) => {
+  compiler.hooks.done.tap('done', async (stats) => {
     try {
       watch();
       donecallback && donecallback(stats);
@@ -99,7 +99,7 @@ const KoaWatch = (compiler, app = null, donecallback = null) => {
       await next();
     });
   }
-  compiler.plugin('done', async (stats) => {
+  compiler.hooks.done.tab('done', async (stats) => {
     try {
       watch();
       donecallback && donecallback(stats);

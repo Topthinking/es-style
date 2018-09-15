@@ -2,13 +2,10 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './page';
 
-import './index.scss';
-
 if (process.env.NODE_ENV === 'production') {
   ReactDOM.render(
     <React.Fragment>
       <App />
-      <es-style />
     </React.Fragment>,
     document.getElementById('root'),
   );
