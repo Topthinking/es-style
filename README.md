@@ -4,6 +4,8 @@
 
 `es-style`是基于`postcss`的转译功能，同时服务于`react`项目，它是针对服务端渲染时的静态资源处理方案，同时也适用于单页面应用
 
+⚠️ `es-style@2.0.0+`版本基于`webpack4`
+
 ## 体验
 
 ```shell
@@ -107,7 +109,7 @@ const compiler = ExpressWatch(webpack(webpackConfig), app, () => {
 
 #### 🍡 雪碧图
 
-    如果需要雪碧图，那么在当前css文件的头部添加如下注释，则该css文件中的所有图片将集成到一张大图上  
+    如果需要雪碧图，那么在当前css文件的头部添加如下注释，则该css文件中的所有图片将集成到一张大图上
 
     不支持svg合并，由于svg-sprite使用到PhantomJS，文件较大，去掉了
 
