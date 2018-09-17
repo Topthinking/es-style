@@ -115,6 +115,7 @@ class Plugin {
               }
             });
           }
+          MyChunks[debugId]._modules = item.modules;
           MyChunks[debugId].modules = _modules;
           MyChunks[debugId].style = css;
         }
@@ -139,8 +140,8 @@ class Plugin {
             MyChunks[item.debugId].id = item.id;
             let jsFile = MyChunks[item.debugId].entry;
             if (global['es-style']['js'].indexOf(jsFile) === -1) {
-              for (let i = 0; i < MyChunks[item.debugId].modules.length; i++) {
-                const module = MyChunks[item.debugId].modules[i];
+              for (let i = 0; i < MyChunks[item.debugId]._modules.length; i++) {
+                const module = MyChunks[item.debugId]._modules[i];
                 if (global['es-style']['js'].indexOf(module) !== -1) {
                   jsFile = module;
                   break;
