@@ -99,7 +99,7 @@ const KoaWatch = (compiler, app = null, donecallback = null) => {
       await next();
     });
   }
-  compiler.hooks.done.tab('done', async (stats) => {
+  compiler.hooks.done.tap('done', async (stats) => {
     try {
       watch();
       donecallback && donecallback(stats);
