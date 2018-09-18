@@ -67,7 +67,6 @@ const ch = [
   '7',
   '8',
   '9',
-  '-',
   '_',
 ];
 
@@ -77,8 +76,14 @@ function rnd() {
   return Math.floor(Math.random() * chlength);
 }
 
+function myFunction(begin, end) {
+  var num = Math.round(Math.random() * (end - begin) + begin);
+  return num;
+}
+
 function randomValue() {
-  return ch[rnd()] + ch[rnd()] + ch[rnd()] + ch[rnd()];
+  const le = Math.round(Math.random() * 2 + 2);
+  return (ch[rnd()] + ch[rnd()] + ch[rnd()] + ch[rnd()]).substr(0, le);
 }
 
 export const isObject = (obj) => {
@@ -119,7 +124,7 @@ export const shouldBeParseImage = (path) => {
 
 const configFile = path.join(process.cwd(), '.es.json');
 
-export const hashString = (str) => {
+export const hashString = (str, classSelector = []) => {
   if (/production|test/.test(process.env.NODE_ENV || '')) {
     str = _hashString(str);
     let config = {};
@@ -140,25 +145,28 @@ export const hashString = (str) => {
     }
 
     if (_config[str]) {
-      return _config[str];
-    } else {
-      let tmp = randomValue();
-
-      // 如果随机值已经存在，或者随机值以数字开头，都需要重新随机
-      while (
-        !/^[a-zA-z]/.test(tmp) ||
-        uniqueIds.indexOf(tmp) !== -1 ||
-        uniqueValue.indexOf(tmp) !== -1
-      ) {
-        tmp = randomValue();
+      if (classSelector.indexOf(_config[str]) === -1) {
+        return _config[str];
       }
-      _config[str] = tmp;
-      uniqueIds.push(tmp);
-
-      fs.writeFileSync(configFile, JSON.stringify(_config));
-
-      return tmp;
     }
+
+    let tmp = randomValue();
+
+    // 如果随机值已经存在，或者随机值以数字开头，都需要重新随机
+    while (
+      /^[\d]/.test(tmp) || // 直接数字开头
+      uniqueIds.indexOf(tmp) !== -1 || // 已经存在的随机数
+      uniqueValue.indexOf(tmp) !== -1 || // 之前已经生成的随机数
+      classSelector.indexOf(tmp) !== -1 // 和类名一致的随机数
+    ) {
+      tmp = randomValue();
+    }
+    _config[str] = tmp;
+    uniqueIds.push(tmp);
+
+    fs.writeFileSync(configFile, JSON.stringify(_config));
+
+    return tmp;
   } else {
     return 'e-' + String(_hashString(str));
   }

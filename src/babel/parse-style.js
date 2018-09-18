@@ -38,7 +38,7 @@ const handlePostcss = (styles, plugins) => {
 };
 
 //将css字符串经过postcss插件进行二次操作
-export const parse = (plugins, state, config) => {
+export const ParseStyle = (plugins, state, config) => {
   let reference = state && state.file && state.file.opts.filename;
   let imageOptions = state && state.opts && state.opts.imageOptions;
   let fontOptions = state && state.opts && state.opts.fontOptions;
@@ -80,10 +80,16 @@ export const parse = (plugins, state, config) => {
 
   return new Promise(async (resolve, reject) => {
     try {
+      //存储class选择器
+      global['es-style-class'] = [];
+
       let globalStyle = await handlePostcss(state.styles.global, plugins);
       let jsxStyle = await handlePostcss(state.styles.jsx, plugins);
 
-      let styleId = jsxStyle === '' ? 0 : hashString(jsxStyle + reference);
+      let styleId =
+        jsxStyle === ''
+          ? 0
+          : hashString(jsxStyle + reference, global['es-style-class']);
 
       if (styleId !== 0) {
         //拼接css-modules

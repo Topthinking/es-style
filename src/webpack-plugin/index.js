@@ -18,8 +18,8 @@ class Plugin {
     let MyChunks = {};
     let CommonStyle = '';
     let CommonFile = '';
-    // 记录每个bundle对应的js资源
-    let bundleChunkId = {};
+    // 记录公共的chunk css module
+    let CommonChunkCssModule = [];
 
     if (
       process.env.NODE_ENV === 'development' ||
@@ -32,9 +32,8 @@ class Plugin {
       compilation.hooks.afterChunks.tap(pluginName, (chunks) => {
         MyChunks = {};
         CommonStyle = '';
+        CommonChunkCssModule = [];
         const moduleEntry = []; //每个chunk的入口文件，都是依赖的第一个文件
-        // 记录公共的chunk css module
-        const CommonChunkCssModule = [];
         chunks.map((item) => {
           const modules = [];
           for (let module of item.modulesIterable) {
@@ -142,7 +141,13 @@ class Plugin {
             if (global['es-style']['js'].indexOf(jsFile) === -1) {
               for (let i = 0; i < MyChunks[item.debugId]._modules.length; i++) {
                 const module = MyChunks[item.debugId]._modules[i];
-                if (global['es-style']['js'].indexOf(module) !== -1) {
+                // 当前模块在当前chunk下
+                // 当前模块存在样式资源
+                // 当前模块不在公共模块内
+                if (
+                  global['es-style']['js'].indexOf(module) !== -1 &&
+                  CommonChunkCssModule.indexOf(module) === -1
+                ) {
                   jsFile = module;
                   break;
                 }

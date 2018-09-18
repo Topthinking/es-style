@@ -1,4 +1,12 @@
-@mixin wh($width,$height){
-	width: $width;
-	height: $height;
+@mixin wh($width, $height) {
+  width: $width;
+  height: $height;
+}
+
+.-a.b {
+  color: red;
+}
+
+._a {
+  color: red;
 }

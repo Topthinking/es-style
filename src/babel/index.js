@@ -8,7 +8,7 @@ import { isObject, shouldBeParseStyle, shouldBeParseImage } from '../utils';
 import parseImage from '../utils/parse-image';
 import fs from '../watch/fs';
 import fsExtra from 'fs-extra';
-import { content, parse } from './parse-style';
+import { content, ParseStyle } from './parse-style';
 import postcssSprites from '../plugins/postcss-sprites';
 
 import Config from '../utils/config';
@@ -364,7 +364,7 @@ module.exports = ({ types: t }) => {
             globalStyle = '',
             JsxStyle = '';
           let wait = true;
-          parse(plugins, state, config)
+          ParseStyle(plugins, state, config)
             .then((result) => {
               globalStyle = result.global;
               JsxStyle = result.jsx;
@@ -389,8 +389,6 @@ module.exports = ({ types: t }) => {
 
           const reference = state && state.file && state.file.opts.filename;
 
-          global['es-style']['js'].push(reference);
-
           if (styleIds.indexOf(state.styleId) === -1) {
             //没有重复的局部样式
             styleIds.push(state.styleId);
@@ -406,6 +404,10 @@ module.exports = ({ types: t }) => {
             globalIds.push(state.globalId);
             css = css + globalStyle;
             global['es-style']['style'] += globalStyle;
+          }
+
+          if (css !== '') {
+            global['es-style']['js'].push(reference);
           }
 
           state.css = globalStyle + JsxStyle;
@@ -516,8 +518,8 @@ module.exports = ({ types: t }) => {
                 if (t.isJSXExpressionContainer(item.value)) {
                   item.value = t.JSXExpressionContainer(
                     concat(
-                      t.StringLiteral(styleId + ' '),
                       item.value.expression,
+                      t.StringLiteral(' ' + styleId),
                     ),
                   );
                 }
@@ -525,7 +527,7 @@ module.exports = ({ types: t }) => {
                 //值是字符串
                 if (t.isStringLiteral(item.value)) {
                   item.value = t.JSXExpressionContainer(
-                    concat(t.StringLiteral(styleId + ' '), item.value),
+                    concat(item.value, t.StringLiteral(' ' + styleId)),
                   );
                 }
 
