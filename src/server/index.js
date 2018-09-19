@@ -28,3 +28,20 @@ export function flushToHTML() {
   }
   return html;
 }
+
+export function flushToReact() {
+  const mem = flush();
+  const arr = [];
+  for (const [id, css] of mem) {
+    arr.push(
+      React.createElement('style', {
+        id: `${id}`,
+        key: `${id}`,
+        dangerouslySetInnerHTML: {
+          __html: css,
+        },
+      }),
+    );
+  }
+  return arr;
+}
