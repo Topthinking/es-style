@@ -169,7 +169,7 @@ module.exports = ({ types: t }) => {
       //全局import es-style 和处理一些全局的变量
       Program: {
         enter(path, state) {
-          const server = (state && state.opts && state.opts.server) || false;
+          const write = (state && state.opts && state.opts.write) || false;
           if (typeof state.styles === 'undefined') {
             state.styles = {
               global: [],
@@ -190,7 +190,8 @@ module.exports = ({ types: t }) => {
                 t.stringLiteral('es-style'),
               ),
             );
-          } else if (server) {
+          } else if (!dev && !write) {
+            // 当发布模式 且 资源不写到file中，那么将引入服务端组件
             path.node.body.unshift(
               t.importDeclaration(
                 [t.importDefaultSpecifier(t.identifier(STYLE_COMPONENT))],
@@ -236,17 +237,10 @@ module.exports = ({ types: t }) => {
         let givenPath = path.node.source.value;
         let reference = state && state.file && state.file.opts.filename;
         let imageOptions = state && state.opts && state.opts.imageOptions;
-        let fileSystem =
-          (state && state.opts && state.opts.fileSystem) || 'memory';
         let publicPath = (state && state.opts && state.opts.publicPath) || '/';
-        let exportPath = (state && state.opts && state.opts.path) || './dist';
-        let type = state && state.opts && state.opts.type;
-        const write = (state && state.opts && state.opts.write) || true;
-
-        state.styleType = 'class';
-        if (['class', 'attribute'].indexOf(type) !== -1) {
-          state.styleType = type;
-        }
+        let publicEntry =
+          (state && state.opts && state.opts.publicEntry) || './dist';
+        const write = (state && state.opts && state.opts.write) || false;
 
         if (typeof state.styleSourceMap === 'undefined') {
           state.styleSourceMap = {};
@@ -325,9 +319,8 @@ module.exports = ({ types: t }) => {
                 reference,
                 write,
                 imageOptions,
-                path: exportPath,
+                publicEntry,
                 publicPath,
-                fileSystem,
               });
 
               const variable = t.variableDeclarator(
@@ -354,7 +347,7 @@ module.exports = ({ types: t }) => {
       },
       //生成jsx的style对象，同时插入转译的样式资源
       JSXElement(path, state) {
-        const server = (state && state.opts && state.opts.server) || false;
+        const write = (state && state.opts && state.opts.write) || false;
         if (
           !state.hasParseStyle &&
           (state.styles.global.length || state.styles.jsx.length)
@@ -427,7 +420,8 @@ module.exports = ({ types: t }) => {
           name.charAt(0) !== name.charAt(0).toUpperCase() &&
           name !== 'style'
         ) {
-          if (!dev && !server) {
+          // 当发布模式，且资源写到file中时，直接删除标签
+          if (!dev && write) {
             if (name === 'es-style' || name === 'es.style') {
               path.remove();
             }
@@ -502,57 +496,42 @@ module.exports = ({ types: t }) => {
         ) {
           return;
         }
-
-        if (state.styleType === 'class') {
-          let isExist = false;
-          //获取对象属性,添加className
-          if (attrs.length) {
-            attrs.map((item) => {
-              if (
-                t.isJSXAttribute(item) &&
-                t.isJSXIdentifier(item.name) &&
-                item.name.name === 'className' &&
-                styleId !== 0
-              ) {
-                //值为{}
-                if (t.isJSXExpressionContainer(item.value)) {
-                  item.value = t.JSXExpressionContainer(
-                    concat(
-                      item.value.expression,
-                      t.StringLiteral(' ' + styleId),
-                    ),
-                  );
-                }
-
-                //值是字符串
-                if (t.isStringLiteral(item.value)) {
-                  item.value = t.JSXExpressionContainer(
-                    concat(item.value, t.StringLiteral(' ' + styleId)),
-                  );
-                }
-
-                isExist = true;
+        let isExist = false;
+        //获取对象属性,添加className
+        if (attrs.length) {
+          attrs.map((item) => {
+            if (
+              t.isJSXAttribute(item) &&
+              t.isJSXIdentifier(item.name) &&
+              item.name.name === 'className' &&
+              styleId !== 0
+            ) {
+              //值为{}
+              if (t.isJSXExpressionContainer(item.value)) {
+                item.value = t.JSXExpressionContainer(
+                  concat(item.value.expression, t.StringLiteral(' ' + styleId)),
+                );
               }
-            });
-          }
 
-          if (!isExist && styleId !== 0) {
-            path.node.attributes.push(
-              t.JSXAttribute(
-                t.JSXIdentifier('className'),
-                t.StringLiteral(styleId),
-              ),
-            );
-          }
-        } else {
-          if (styleId !== 0) {
-            path.node.attributes.push(
-              t.JSXAttribute(
-                t.JSXIdentifier(`data-${styleId}`),
-                t.StringLiteral(''),
-              ),
-            );
-          }
+              //值是字符串
+              if (t.isStringLiteral(item.value)) {
+                item.value = t.JSXExpressionContainer(
+                  concat(item.value, t.StringLiteral(' ' + styleId)),
+                );
+              }
+
+              isExist = true;
+            }
+          });
+        }
+
+        if (!isExist && styleId !== 0) {
+          path.node.attributes.push(
+            t.JSXAttribute(
+              t.JSXIdentifier('className'),
+              t.StringLiteral(styleId),
+            ),
+          );
         }
       },
     },

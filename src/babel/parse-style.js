@@ -42,10 +42,9 @@ export const ParseStyle = (plugins, state, config) => {
   let reference = state && state.file && state.file.opts.filename;
   let imageOptions = state && state.opts && state.opts.imageOptions;
   let fontOptions = state && state.opts && state.opts.fontOptions;
-  let fileSystem = (state && state.opts && state.opts.fileSystem) || 'memory';
   let publicPath = (state && state.opts && state.opts.publicPath) || '/';
-  let path = (state && state.opts && state.opts.path) || './dist';
-  const write = (state && state.opts && state.opts.write) || true;
+  let publicEntry = (state && state.opts && state.opts.publicEntry) || './dist';
+  const write = (state && state.opts && state.opts.write) || false;
 
   if (typeof imageOptions === 'undefined') {
     imageOptions = {};
@@ -64,17 +63,15 @@ export const ParseStyle = (plugins, state, config) => {
     postcssImages({
       write,
       imageOptions,
-      path,
+      publicEntry,
       publicPath,
-      fileSystem,
     }),
     postcssFont({
       reference,
       write,
       fontOptions,
-      path,
+      publicEntry,
       publicPath,
-      fileSystem,
     }),
   ];
 

@@ -359,26 +359,29 @@ class Plugin {
       }
 
       // 生成bundle文件
-      if (Object.keys(MyChunks).length > 1) {
-        for (let debugId in MyChunks) {
-          const item = MyChunks[debugId];
-          const style = item.style;
-          if (style !== '') {
-            if (typeof item.name !== 'string') {
-              map[item['hash-bundle']] = item.fileName;
-            } else {
-              map[item.name] = item.fileName;
-            }
-            const _style = license + cleanStyle(style);
-            compilation.assets['styles/' + (item.hashName || item.fileName)] = {
-              source() {
-                return _style;
-              },
-              size() {
-                return _style.length;
-              },
-            };
+      const bundleLength = Object.keys(MyChunks).length;
+      for (let debugId in MyChunks) {
+        const item = MyChunks[debugId];
+        const style = item.style;
+        if (item.name === 'main') {
+          // 入口文件，默认是main，所以不能修改默认入口
+          map[item.name] = item.fileName.replace(/\.css/, '');
+        }
+        if (style !== '' && bundleLength > 1) {
+          if (typeof item.name !== 'string') {
+            map[item['hash-bundle']] = item.fileName;
+          } else {
+            map[item.name] = item.fileName;
           }
+          const _style = license + cleanStyle(style);
+          compilation.assets['styles/' + (item.hashName || item.fileName)] = {
+            source() {
+              return _style;
+            },
+            size() {
+              return _style.length;
+            },
+          };
         }
       }
 

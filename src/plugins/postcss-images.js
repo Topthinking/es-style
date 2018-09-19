@@ -3,7 +3,7 @@ import parseImage from '../utils/parse-image';
 
 export default postcss.plugin(
   'postcss-images',
-  ({ path, imageOptions, write, publicPath, fileSystem } = {}) => {
+  ({ publicEntry, imageOptions, write, publicPath } = {}) => {
     return (root) => {
       root.walkRules((rule) => {
         // 记录class选择器，主要用来生成随机的class时防止冲突
@@ -45,9 +45,8 @@ export default postcss.plugin(
                       reference: root.source.input.file,
                       write,
                       imageOptions,
-                      path,
+                      publicEntry,
                       publicPath,
-                      fileSystem,
                     }),
                   );
                   decl.value = decl.value.replace(item, itemValue);
