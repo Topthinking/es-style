@@ -13,6 +13,11 @@ const cleanStyle = (css) => {
 const license = `/*!\n* es-style\n* https://github.com/topthinking/es-style\n*\n* Released under MIT license. Copyright (c) 2018 GitHub Inc.\n*/`;
 
 class Plugin {
+  constructor(combine = false) {
+    // 判断是否合并所有样式
+    this.combine = combine;
+  }
+
   apply(compiler) {
     // 记录每个chunk对应的css module
     let MyChunks = {};
@@ -86,6 +91,7 @@ class Plugin {
         }
 
         //去除MyChunks里面 公共的module
+        let mainCss = '';
         for (let debugId in MyChunks) {
           const _modules = [];
           const item = MyChunks[debugId];
@@ -113,6 +119,9 @@ class Plugin {
               }
             });
           }
+          if (item.name === 'main') {
+            mainCss = css;
+          }
           MyChunks[debugId]._modules = item.modules;
           MyChunks[debugId].modules = _modules;
           MyChunks[debugId].style = css;
@@ -123,6 +132,8 @@ class Plugin {
         if (global['es-style'] && global['es-style']['style']) {
           CommonStyle += global['es-style']['style'];
         }
+
+        CommonStyle += mainCss;
 
         CommonChunkCssModule.map((item) => {
           if (global['es-style'] && global['es-style']['es'][item]) {
@@ -182,6 +193,9 @@ class Plugin {
       mainTemplate.hooks.requireEnsure.tap(
         pluginName,
         (source, chunk, hash) => {
+          if (this.combine) {
+            return source;
+          }
           const chunkMap = {};
           for (let debugId in MyChunks) {
             if (MyChunks[debugId].style) {
@@ -345,19 +359,6 @@ class Plugin {
 
     compiler.hooks.emit.tapAsync(pluginName, (compilation, callback) => {
       let map = {};
-      // 生成公共样式文件
-      if (CommonFile !== '') {
-        map[0] = CommonFile;
-        const _style = license + cleanStyle(CommonStyle);
-        compilation.assets['styles/' + CommonFile] = {
-          source() {
-            return _style;
-          },
-          size() {
-            return _style.length;
-          },
-        };
-      }
 
       // 生成bundle文件
       const bundleLength = Object.keys(MyChunks).length;
@@ -369,13 +370,51 @@ class Plugin {
           map[item.name] = item.fileName.replace(/\.css/, '');
         }
         if (style !== '' && bundleLength > 1) {
-          if (typeof item.name !== 'string') {
-            map[item['hash-bundle']] = item.fileName;
+          if (this.combine) {
+            CommonStyle += style;
           } else {
-            map[item.name] = item.fileName;
+            if (item.name !== 'main') {
+              if (typeof item.name !== 'string') {
+                map[item['hash-bundle']] = item.fileName;
+              } else {
+                map[item.name] = item.fileName;
+              }
+              const _style = license + cleanStyle(style);
+              compilation.assets[
+                'styles/' + (item.hashName || item.fileName)
+              ] = {
+                source() {
+                  return _style;
+                },
+                size() {
+                  return _style.length;
+                },
+              };
+            }
           }
-          const _style = license + cleanStyle(style);
-          compilation.assets['styles/' + (item.hashName || item.fileName)] = {
+        }
+      }
+
+      if (this.combine) {
+        if (CommonStyle !== '') {
+          const _file = md5(CommonStyle).substr(0, 5) + '.css';
+          const _style = license + cleanStyle(CommonStyle);
+          map[0] = _file;
+          compilation.assets['styles/' + _file] = {
+            source() {
+              return _style;
+            },
+            size() {
+              return _style.length;
+            },
+          };
+        }
+      } else {
+        // 生成公共样式文件
+        if (CommonFile !== '') {
+          map[0] = CommonFile;
+          const _style = license + cleanStyle(CommonStyle);
+          compilation.assets['styles/' + CommonFile] = {
             source() {
               return _style;
             },

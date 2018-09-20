@@ -25,53 +25,61 @@ const dev =
   process.env.NODE_ENV === 'development' ||
   typeof process.env.NODE_ENV === 'undefined';
 
+const combine_style =
+  typeof process.env.COMBINE_STYLE === 'undefined'
+    ? false
+    : process.env.COMBINE_STYLE === 'true'
+      ? true
+      : false;
+
 //记录样式是否出现重复的引用，主要用来做css导出使用的
 let styleIds = [],
   globalIds = [];
 
 const styleElement = (state, t) => {
-  const reference = state && state.file && state.file.opts.filename;
-  if (
-    (state.styles.global.length || state.styles.jsx.length) &&
-    state.css !== ''
-  ) {
-    const attributes = [
-      t.jSXAttribute(
-        t.jSXIdentifier('file'),
-        t.jSXExpressionContainer(
-          t.stringLiteral(String(hashString(reference))),
+  if (!combine_style) {
+    const reference = state && state.file && state.file.opts.filename;
+    if (
+      (state.styles.global.length || state.styles.jsx.length) &&
+      state.css !== ''
+    ) {
+      const attributes = [
+        t.jSXAttribute(
+          t.jSXIdentifier('file'),
+          t.jSXExpressionContainer(
+            t.stringLiteral(String(hashString(reference))),
+          ),
         ),
-      ),
-    ];
+      ];
 
-    if (dev) {
-      attributes.push(
-        t.jSXAttribute(
-          t.jSXIdentifier(STYLE_COMPONENT_CSS),
-          t.jSXExpressionContainer(t.stringLiteral(state.css)),
-        ),
-        t.jSXAttribute(
-          t.jSXIdentifier(STYLE_COMPONENT_STYLEID),
-          t.jSXExpressionContainer(
-            t.stringLiteral(String(state.styleId || state.globalId)),
+      if (dev) {
+        attributes.push(
+          t.jSXAttribute(
+            t.jSXIdentifier(STYLE_COMPONENT_CSS),
+            t.jSXExpressionContainer(t.stringLiteral(state.css)),
           ),
-        ),
-        t.jSXAttribute(
-          t.jSXIdentifier('production'),
-          t.jSXExpressionContainer(
-            t.BooleanLiteral(process.env.NODE_ENV === 'production'),
+          t.jSXAttribute(
+            t.jSXIdentifier(STYLE_COMPONENT_STYLEID),
+            t.jSXExpressionContainer(
+              t.stringLiteral(String(state.styleId || state.globalId)),
+            ),
           ),
-        ),
+          t.jSXAttribute(
+            t.jSXIdentifier('production'),
+            t.jSXExpressionContainer(
+              t.BooleanLiteral(process.env.NODE_ENV === 'production'),
+            ),
+          ),
+        );
+      }
+
+      return t.jSXElement(
+        t.jSXOpeningElement(t.jSXIdentifier(STYLE_COMPONENT), attributes, true),
+        null,
+        [],
       );
     }
-
-    return t.jSXElement(
-      t.jSXOpeningElement(t.jSXIdentifier(STYLE_COMPONENT), attributes, true),
-      null,
-      [],
-    );
   }
-
   return null;
 };
 
@@ -190,13 +198,15 @@ module.exports = ({ types: t }) => {
               ),
             );
           } else if (!dev && !write) {
-            // 当发布模式 且 资源不写到file中，那么将引入服务端组件
-            path.node.body.unshift(
-              t.importDeclaration(
-                [t.importDefaultSpecifier(t.identifier(STYLE_COMPONENT))],
-                t.stringLiteral('es-style/server'),
-              ),
-            );
+            if (!combine_style) {
+              // 当发布模式 且 资源不写到file中，那么将引入服务端组件
+              path.node.body.unshift(
+                t.importDeclaration(
+                  [t.importDefaultSpecifier(t.identifier(STYLE_COMPONENT))],
+                  t.stringLiteral('es-style/server'),
+                ),
+              );
+            }
           }
 
           path.traverse({
