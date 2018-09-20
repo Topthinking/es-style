@@ -159,7 +159,6 @@ if (!global['es-style']) {
   global['es-style'] = {
     es: {}, // 存放css module
     style: '', // 存放公共css资源
-    js: [], // 引用css的js资源
   };
 }
 
@@ -397,10 +396,6 @@ module.exports = ({ types: t }) => {
             globalIds.push(state.globalId);
             css = css + globalStyle;
             global['es-style']['style'] += globalStyle;
-          }
-
-          if (css !== '') {
-            global['es-style']['js'].push(reference);
           }
 
           state.css = globalStyle + JsxStyle;

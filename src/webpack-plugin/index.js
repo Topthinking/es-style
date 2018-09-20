@@ -63,17 +63,16 @@ class Plugin {
             item.modules.map((_module, index) => {
               // 表示非入口的模块
               if (moduleEntry.indexOf(_module) === -1) {
+                if (CommonModule[_module]) {
+                  CommonModule[_module] = 2;
+                }
                 if (
                   CommonModule[_module] &&
                   CommonChunkCssModule.indexOf(_module) === -1
                 ) {
                   // 说明已经存在该module了,需要将该module存入公共的css module
                   // 剔除当前模块没有import样式
-                  if (
-                    global['es-style'] &&
-                    global['es-style']['es'][_module] &&
-                    global['es-style']['es'][_module] !== ''
-                  ) {
+                  if (global['es-style'] && global['es-style']['es'][_module]) {
                     CommonChunkCssModule.push(_module);
                   }
                 } else {
@@ -134,19 +133,21 @@ class Plugin {
 
       // 添加chunkId
       compilation.hooks.afterOptimizeChunkIds.tap(pluginName, (chunks) => {
+        const dir = process.cwd();
         chunks.map((item) => {
           if (MyChunks[item.debugId]) {
             MyChunks[item.debugId].id = item.id;
             let jsFile = MyChunks[item.debugId].entry;
-            if (global['es-style']['js'].indexOf(jsFile) === -1) {
+            if (!global['es-style']['es'][jsFile]) {
               for (let i = 0; i < MyChunks[item.debugId]._modules.length; i++) {
                 const module = MyChunks[item.debugId]._modules[i];
                 // 当前模块在当前chunk下
                 // 当前模块存在样式资源
                 // 当前模块不在公共模块内
                 if (
-                  global['es-style']['js'].indexOf(module) !== -1 &&
-                  CommonChunkCssModule.indexOf(module) === -1
+                  global['es-style']['es'][module] &&
+                  CommonChunkCssModule.indexOf(module) === -1 &&
+                  module.indexOf(dir) !== -1
                 ) {
                   jsFile = module;
                   break;

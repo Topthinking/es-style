@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './page/other';
+import App from './bundle';
 
 if (process.env.NODE_ENV === 'production') {
   ReactDOM.render(
