@@ -368,12 +368,11 @@ class Plugin {
         if (item.name === 'main') {
           // 入口文件，默认是main，所以不能修改默认入口
           map[item.name] = item.fileName.replace(/\.css/, '');
-        }
-        if (style !== '' && bundleLength > 1) {
-          if (this.combine) {
-            CommonStyle += style;
-          } else {
-            if (item.name !== 'main') {
+        } else {
+          if (style !== '' && bundleLength > 1) {
+            if (this.combine) {
+              CommonStyle += style;
+            } else {
               if (typeof item.name !== 'string') {
                 map[item['hash-bundle']] = item.fileName;
               } else {

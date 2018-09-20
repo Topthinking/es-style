@@ -84,9 +84,7 @@ export const ParseStyle = (plugins, state, config) => {
       let jsxStyle = await handlePostcss(state.styles.jsx, plugins);
 
       let styleId =
-        jsxStyle === ''
-          ? 0
-          : hashString(jsxStyle + reference, global['es-style-class']);
+        jsxStyle === '' ? 0 : hashString(jsxStyle, global['es-style-class']);
 
       if (styleId !== 0) {
         //拼接css-modules
