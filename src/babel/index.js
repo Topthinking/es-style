@@ -490,16 +490,18 @@ module.exports = ({ types: t }) => {
         }
 
         //JSXElement是一个对象
-        if (t.isJSXMemberExpression(path.node.name) && !hasClassName) {
-          return;
-        }
-
-        if (
-          path.node.name.name.charAt(0) ==
-            path.node.name.name.charAt(0).toUpperCase() &&
-          !hasClassName
-        ) {
-          return;
+        if (t.isJSXMemberExpression(path.node.name)) {
+          if (!hasClassName) {
+            return;
+          }
+        } else {
+          if (
+            path.node.name.name.charAt(0) ==
+              path.node.name.name.charAt(0).toUpperCase() &&
+            !hasClassName
+          ) {
+            return;
+          }
         }
         let isExist = false;
         //获取对象属性,添加className
