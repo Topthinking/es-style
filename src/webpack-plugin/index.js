@@ -306,7 +306,9 @@ class Plugin {
               Template.indent([
                 `return new Promise(function(resolve,reject){`,
                 Template.indent([
-                  `var fullhref = ${mainTemplate.requireFn}.p + item;`,
+                  `var fullhref = ${
+                    mainTemplate.requireFn
+                  }.p + 'styles/' + item;`,
                   'var linkTag = document.createElement("link");',
                   'linkTag.rel = "stylesheet";',
                   'linkTag.type = "text/css";',
