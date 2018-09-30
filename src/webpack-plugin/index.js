@@ -23,6 +23,7 @@ class Plugin {
     let MyChunks = {};
     let CommonStyle = '';
     let CommonFile = '';
+    let StyleFileName = '';
     // 记录公共的chunk css module
     let CommonChunkCssModule = [];
 
@@ -37,6 +38,7 @@ class Plugin {
       compilation.hooks.afterChunks.tap(pluginName, (chunks) => {
         MyChunks = {};
         CommonStyle = '';
+        StyleFileName = '';
         CommonChunkCssModule = [];
         const moduleEntry = []; //每个chunk的入口文件，都是依赖的第一个文件
         chunks.map((item) => {
@@ -262,7 +264,11 @@ class Plugin {
         const chunks = Object.keys(MyChunks);
         const mainStyle = [];
 
-        if (chunks.length === 1) {
+        if (chunks.length === 0) {
+          return source;
+        }
+
+        if (chunks.length === 1 && chunks[0] === chunk.debugId) {
           // 如果只有一个chunk，那么将与common合并
           CommonStyle += MyChunks[chunks[0]].style;
         } else {
@@ -350,10 +356,23 @@ class Plugin {
       compilation.hooks.additionalChunkAssets.tap(pluginName, (chunks) => {
         chunks.map((item) => {
           if (MyChunks[item.debugId]) {
-            MyChunks[item.debugId].fileName = item.files[0]
-              .split('/')
-              .pop()
-              .replace(/\.js$/, '.css');
+            const stylesFiles = item.files.filter((file) =>
+              /styles\//.test(file),
+            );
+            if (item.name === 'main' && stylesFiles.length) {
+              // 存在样式资源，主要配合插件 mini-css-extract-plugin
+              StyleFileName = stylesFiles[0];
+            }
+
+            const scriptsFiles = item.files.filter((file) =>
+              /scripts\//.test(file),
+            );
+            if (scriptsFiles.length) {
+              MyChunks[item.debugId].fileName = scriptsFiles[0]
+                .split('/')
+                .pop()
+                .replace(/\.js$/, '.css');
+            }
           }
         });
       });
@@ -424,6 +443,10 @@ class Plugin {
             },
           };
         }
+      }
+
+      if (StyleFileName !== '') {
+        map['main-style'] = StyleFileName.split('/').pop();
       }
 
       // 生成提供服务器使用的css文件的map
