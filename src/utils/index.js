@@ -171,3 +171,7 @@ export const hashString = (str, classSelector = []) => {
     return 'e-' + String(_hashString(str));
   }
 };
+
+export const dev =
+  process.env.NODE_ENV === 'development' ||
+  typeof process.env.NODE_ENV === 'undefined';

@@ -4,6 +4,7 @@ import mime from 'mime';
 import requireResolve from 'require-resolve';
 import md5 from 'md5';
 import { resolve, basename, join } from 'path';
+import { dev } from './';
 
 export default ({
   publicEntry,
@@ -55,12 +56,8 @@ export default ({
         //文件名称
         _filename = _filename + '_' + md5(data).substr(0, 7) + '.' + ext;
 
-        if (write) {
-          // 当前可写资源
-          new_src = [publicPath, imageOptions.path, _filename].join('');
-          fs.copySync(src, join(publicEntry, imageOptions.path, _filename));
-        } else {
-          // 当前资源不可写，输出到内存中...
+        if (dev) {
+          // 开发模式，文件写入到内存中
           const new_dir = join('/static', imageOptions.path);
 
           if (!memoryFs.existsSync(new_dir)) {
@@ -70,6 +67,12 @@ export default ({
           new_src = join(new_dir, _filename);
 
           memoryFs.writeFileSync(new_src, data);
+        } else {
+          new_src = [publicPath, imageOptions.path, _filename].join('');
+          // 当前可写资源
+          if (write) {
+            fs.copySync(src, join(publicEntry, imageOptions.path, _filename));
+          }
         }
       }
     }

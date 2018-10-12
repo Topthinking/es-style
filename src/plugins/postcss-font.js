@@ -5,6 +5,7 @@ import requireResolve from 'require-resolve';
 import md5 from 'md5';
 import { resolve, basename, join } from 'path';
 import memoryFs, { get } from '../watch/fs';
+import { dev } from '../utils';
 
 export default postcss.plugin(
   'postcss-font',
@@ -76,37 +77,38 @@ export default postcss.plugin(
                     }
                   }
 
-                  //获取新地址
-                  //file 文本文件类型
-                  if (write) {
-                    // http://cdn.com/dist/fonts/font-name.svg
-                    new_src = [publicPath, fontOptions.path, filename].join('');
-                  } else {
-                    //memory 内存文件类型
+                  if (dev) {
+                    // 开发模式 memory 内存文件类型
                     const new_dir = join('/static', fontOptions.path);
                     if (!memoryFs.existsSync(new_dir)) {
                       memoryFs.mkdirpSync(new_dir);
                     }
                     new_src = join(new_dir, filename);
+                  } else {
+                    // http://cdn.com/dist/fonts/font-name.svg
+                    new_src = [publicPath, fontOptions.path, filename].join('');
                   }
 
                   //写文件
                   if (/^\./.test(url)) {
                     //本地文件转移
-
-                    if (write) {
-                      fs.copySync(src, realPath);
-                    } else {
+                    if (dev) {
                       memoryFs.writeFileSync(new_src, fs.readFileSync(src));
+                    } else {
+                      if (write) {
+                        fs.copySync(src, realPath);
+                      }
                     }
                   } else {
                     //远程下载文件
-                    if (write) {
-                      request.get(url).pipe(fs.createWriteStream(realPath));
-                    } else {
+                    if (dev) {
                       request
                         .get(url)
                         .pipe(memoryFs.createWriteStream(new_src));
+                    } else {
+                      if (write) {
+                        request.get(url).pipe(fs.createWriteStream(realPath));
+                      }
                     }
                   }
 

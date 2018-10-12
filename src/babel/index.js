@@ -12,7 +12,7 @@ import { content, ParseStyle } from './parse-style';
 import postcssSprites from '../plugins/postcss-sprites';
 
 import Config from '../utils/config';
-
+import { dev } from '../utils';
 import {
   STYLE_COMPONENT,
   STYLE_COMPONENT_CSS,
@@ -20,10 +20,6 @@ import {
 } from '../utils/constant';
 
 const concat = (a, b) => t.binaryExpression('+', a, b);
-
-const dev =
-  process.env.NODE_ENV === 'development' ||
-  typeof process.env.NODE_ENV === 'undefined';
 
 const combine_style =
   typeof process.env.COMBINE_STYLE === 'undefined'
