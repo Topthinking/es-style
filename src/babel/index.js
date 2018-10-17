@@ -1,7 +1,7 @@
 import { loopWhile } from 'deasync';
 import * as t from 'babel-types';
 import del from 'del';
-import { resolve, join } from 'path';
+import { resolve, join, relative } from 'path';
 import requireResolve from 'require-resolve';
 import hashString from 'string-hash';
 import { isObject, shouldBeParseStyle, shouldBeParseImage } from '../utils';
@@ -20,7 +20,7 @@ import {
 } from '../utils/constant';
 
 const concat = (a, b) => t.binaryExpression('+', a, b);
-
+const cwd = process.cwd();
 const combine_style =
   typeof process.env.COMBINE_STYLE === 'undefined'
     ? false
@@ -95,7 +95,7 @@ if (sprites) {
       throw new Error('spritePath 不能设置为 .es-style');
       process.exit();
     }
-    del(join(process.cwd(), spritesOptions.spritePath), { force: true });
+    del(join(cwd, spritesOptions.spritePath), { force: true });
   }
 }
 
@@ -162,7 +162,8 @@ let FirstExecuteStyle = true;
 if (!global['es-style']) {
   global['es-style'] = {
     es: {}, // 存放css module
-    style: '', // 存放公共css资源
+    style: {}, // 存放公共css资源
+    hash: {}, // 存放资源文件对应的hash
   };
 }
 
@@ -390,7 +391,6 @@ module.exports = ({ types: t }) => {
           if (styleIds.indexOf(state.styleId) === -1) {
             //没有重复的局部样式
             styleIds.push(state.styleId);
-            css = css + JsxStyle;
             global['es-style']['es'][reference] = JsxStyle;
           }
 
@@ -400,9 +400,12 @@ module.exports = ({ types: t }) => {
           ) {
             //没有重复的全局样式
             globalIds.push(state.globalId);
-            css = css + globalStyle;
-            global['es-style']['style'] += globalStyle;
+            global['es-style']['style'][reference] = globalStyle;
           }
+
+          global['es-style']['hash'][reference] = hashString(
+            relative(cwd, reference),
+          );
 
           state.css = globalStyle + JsxStyle;
         }

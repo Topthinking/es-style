@@ -26,6 +26,8 @@ class Plugin {
     let StyleFileName = '';
     // 记录公共的chunk css module
     let CommonChunkCssModule = [];
+    // 记录公共样式的hash名字，通过hash名字排序拼接style
+    let CommonFileHashName = [];
 
     if (
       process.env.NODE_ENV === 'development' ||
@@ -40,6 +42,7 @@ class Plugin {
         CommonStyle = '';
         StyleFileName = '';
         CommonChunkCssModule = [];
+        CommonFileHashName = [];
         const moduleEntry = []; //每个chunk的入口文件，都是依赖的第一个文件
         chunks.map((item) => {
           const modules = [];
@@ -70,9 +73,6 @@ class Plugin {
             item.modules.map((_module, index) => {
               // 表示非入口的模块
               if (moduleEntry.indexOf(_module) === -1) {
-                if (CommonModule[_module]) {
-                  CommonModule[_module] = 2;
-                }
                 if (
                   CommonModule[_module] &&
                   CommonChunkCssModule.indexOf(_module) === -1
@@ -93,7 +93,6 @@ class Plugin {
         }
 
         //去除MyChunks里面 公共的module
-        let mainCss = '';
         for (let debugId in MyChunks) {
           const _modules = [];
           const item = MyChunks[debugId];
@@ -115,14 +114,17 @@ class Plugin {
                   global['es-style']['es'][_module] &&
                   global['es-style']['es'][_module] !== ''
                 ) {
+                  if (item.name === 'main') {
+                    // 获取当前模块的属于main的公共file
+                    CommonFileHashName.push(
+                      global['es-style']['hash'][_module],
+                    );
+                  }
                   css += global['es-style']['es'][_module];
                   _modules.push(_module);
                 }
               }
             });
-          }
-          if (item.name === 'main') {
-            mainCss = css;
           }
           MyChunks[debugId]._modules = item.modules;
           MyChunks[debugId].modules = _modules;
@@ -130,18 +132,42 @@ class Plugin {
         }
 
         // 生成公共的样式资源
-
         if (global['es-style'] && global['es-style']['style']) {
-          CommonStyle += global['es-style']['style'];
+          // 获取全局的公共file名称
+          const commonStyleKeys = Object.keys(global['es-style']['style']);
+          commonStyleKeys.map((item) => {
+            CommonFileHashName.push(global['es-style']['hash'][item]);
+          });
         }
-
-        CommonStyle += mainCss;
 
         CommonChunkCssModule.map((item) => {
           if (global['es-style'] && global['es-style']['es'][item]) {
-            CommonStyle += global['es-style']['es'][item];
+            CommonFileHashName.push(global['es-style']['hash'][item]);
           }
         });
+
+        // 解析公共的chunkfile
+        // 将hashName进行排序
+        CommonFileHashName.sort((x, y) => x > y);
+        // 将对象的键值对翻转
+        let _hash = {};
+        Object.keys(global['es-style']['hash']).map((item) => {
+          _hash[global['es-style']['hash'][item]] = item;
+        });
+
+        console.log(CommonFileHashName);
+        // 收集所有的公共样式
+        CommonFileHashName.map((item) => {
+          const file = _hash[item];
+          if (global['es-style']['style'][file]) {
+            CommonStyle += global['es-style']['style'][file];
+          }
+
+          if (global['es-style']['es'][file]) {
+            CommonStyle += global['es-style']['es'][file];
+          }
+        });
+        console.log(md5(CommonStyle));
       });
 
       // 添加chunkId
@@ -293,7 +319,7 @@ class Plugin {
         }
 
         if (CommonStyle !== '') {
-          CommonFile = md5(CommonStyle).substr(0, 5) + '.css';
+          CommonFile = md5(cleanStyle(CommonStyle)).substr(0, 5) + '.css';
           mainStyle.push(CommonFile);
         }
 
@@ -417,8 +443,8 @@ class Plugin {
 
       if (this.combine) {
         if (CommonStyle !== '') {
-          const _file = md5(CommonStyle).substr(0, 5) + '.css';
           const _style = license + cleanStyle(CommonStyle);
+          const _file = md5(_style).substr(0, 5) + '.css';
           map[0] = _file;
           compilation.assets['styles/' + _file] = {
             source() {
