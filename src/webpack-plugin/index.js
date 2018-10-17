@@ -293,7 +293,12 @@ class Plugin {
         }
 
         if (CommonStyle !== '') {
-          CommonFile = md5(CommonStyle).substr(0, 5) + '.css';
+          CommonFile =
+            md5(
+              CommonStyle.split('')
+                .sort()
+                .join(''),
+            ).substr(0, 5) + '.css';
           mainStyle.push(CommonFile);
         }
 
@@ -417,8 +422,14 @@ class Plugin {
 
       if (this.combine) {
         if (CommonStyle !== '') {
-          const _file = md5(CommonStyle).substr(0, 5) + '.css';
           const _style = license + cleanStyle(CommonStyle);
+          const _file =
+            md5(
+              _style
+                .split('')
+                .sort()
+                .join(''),
+            ).substr(0, 5) + '.css';
           map[0] = _file;
           compilation.assets['styles/' + _file] = {
             source() {
