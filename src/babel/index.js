@@ -1,7 +1,7 @@
 import { loopWhile } from 'deasync';
 import * as t from 'babel-types';
 import del from 'del';
-import { resolve, join } from 'path';
+import { resolve, join, relative } from 'path';
 import requireResolve from 'require-resolve';
 import hashString from 'string-hash';
 import { isObject, shouldBeParseStyle, shouldBeParseImage } from '../utils';
@@ -20,7 +20,7 @@ import {
 } from '../utils/constant';
 
 const concat = (a, b) => t.binaryExpression('+', a, b);
-
+const cwd = process.cwd();
 const combine_style =
   typeof process.env.COMBINE_STYLE === 'undefined'
     ? false
@@ -48,7 +48,7 @@ const styleElement = (state, t) => {
         ),
       ];
 
-      if (dev) {
+      if (dev()) {
         attributes.push(
           t.jSXAttribute(
             t.jSXIdentifier(STYLE_COMPONENT_CSS),
@@ -95,7 +95,7 @@ if (sprites) {
       throw new Error('spritePath 不能设置为 .es-style');
       process.exit();
     }
-    del(join(process.cwd(), spritesOptions.spritePath), { force: true });
+    del(join(cwd, spritesOptions.spritePath), { force: true });
   }
 }
 
@@ -162,7 +162,18 @@ let FirstExecuteStyle = true;
 if (!global['es-style']) {
   global['es-style'] = {
     es: {}, // 存放css module
-    style: '', // 存放公共css资源
+    style: {}, // 存放公共css资源
+    relation: {
+      // 存放关系依赖
+      es: {
+        hash: {}, // hash => 多文件 {100:['a.js','b.js']}
+        file: {}, // 文件 => hash值  {'a.js': 100,'b.js':100}
+      },
+      style: {
+        hash: {},
+        file: {},
+      },
+    },
   };
 }
 
@@ -186,14 +197,14 @@ module.exports = ({ types: t }) => {
             return;
           }
 
-          if (dev) {
+          if (dev()) {
             path.node.body.unshift(
               t.importDeclaration(
                 [t.importDefaultSpecifier(t.identifier(STYLE_COMPONENT))],
                 t.stringLiteral('es-style'),
               ),
             );
-          } else if (!dev && !write) {
+          } else if (!dev() && !write) {
             if (!combine_style) {
               // 当发布模式 且 资源不写到file中，那么将引入服务端组件
               path.node.body.unshift(
@@ -223,7 +234,7 @@ module.exports = ({ types: t }) => {
           ) {
             return;
           }
-          if (dev) {
+          if (dev()) {
             //写信息到内存文件中
             let map = state.styleSourceMap;
 
@@ -386,11 +397,45 @@ module.exports = ({ types: t }) => {
           state.globalId = globalStyle === '' ? '0' : hashString(globalStyle);
 
           const reference = state && state.file && state.file.opts.filename;
+          let _esHash, _styleHash;
+          if (!dev()) {
+            _esHash = hashString(
+              state.styles.jsx.map((item) => item.css).join(''),
+            );
+            _styleHash = hashString(
+              state.styles.global.map((item) => item.css).join(''),
+            );
+            // 存放文件引用对应的styleHash值
+            // 局部
+            global['es-style']['es'][reference] = '';
+            global['es-style']['relation']['es']['file'][reference] = _esHash;
+            if (!global['es-style']['relation']['es']['hash'][_esHash]) {
+              global['es-style']['relation']['es']['hash'][_esHash] = [];
+            }
+
+            // 全局
+            global['es-style']['style'][reference] = '';
+            global['es-style']['relation']['style']['file'][
+              reference
+            ] = _styleHash;
+            if (!global['es-style']['relation']['style']['hash'][_styleHash]) {
+              global['es-style']['relation']['style']['hash'][_styleHash] = [];
+            }
+
+            // 存放es中hash对应的多文件
+            global['es-style']['relation']['es']['hash'][_esHash].push(
+              reference,
+            );
+
+            // 存放style中hash对应的多文件
+            global['es-style']['relation']['style']['hash'][_styleHash].push(
+              reference,
+            );
+          }
 
           if (styleIds.indexOf(state.styleId) === -1) {
             //没有重复的局部样式
             styleIds.push(state.styleId);
-            css = css + JsxStyle;
             global['es-style']['es'][reference] = JsxStyle;
           }
 
@@ -400,8 +445,7 @@ module.exports = ({ types: t }) => {
           ) {
             //没有重复的全局样式
             globalIds.push(state.globalId);
-            css = css + globalStyle;
-            global['es-style']['style'] += globalStyle;
+            global['es-style']['style'][reference] = globalStyle;
           }
 
           state.css = globalStyle + JsxStyle;
@@ -422,7 +466,7 @@ module.exports = ({ types: t }) => {
           name !== 'style'
         ) {
           // 当发布模式，且资源写到file中时，直接删除标签
-          if (!dev && write) {
+          if (!dev() && write) {
             if (name === 'es-style' || name === 'es.style') {
               path.remove();
             }
