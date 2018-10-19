@@ -172,6 +172,6 @@ export const hashString = (str, classSelector = []) => {
   }
 };
 
-export const dev =
+export const dev = () =>
   process.env.NODE_ENV === 'development' ||
   typeof process.env.NODE_ENV === 'undefined';

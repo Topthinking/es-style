@@ -56,7 +56,7 @@ export default ({
         //文件名称
         _filename = _filename + '_' + md5(data).substr(0, 7) + '.' + ext;
 
-        if (dev) {
+        if (dev()) {
           // 开发模式，文件写入到内存中
           const new_dir = join('/static', imageOptions.path);
 

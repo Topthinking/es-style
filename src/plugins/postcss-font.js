@@ -77,7 +77,7 @@ export default postcss.plugin(
                     }
                   }
 
-                  if (dev) {
+                  if (dev()) {
                     // 开发模式 memory 内存文件类型
                     const new_dir = join('/static', fontOptions.path);
                     if (!memoryFs.existsSync(new_dir)) {
@@ -92,7 +92,7 @@ export default postcss.plugin(
                   //写文件
                   if (/^\./.test(url)) {
                     //本地文件转移
-                    if (dev) {
+                    if (dev()) {
                       memoryFs.writeFileSync(new_src, fs.readFileSync(src));
                     } else {
                       if (write) {
@@ -101,7 +101,7 @@ export default postcss.plugin(
                     }
                   } else {
                     //远程下载文件
-                    if (dev) {
+                    if (dev()) {
                       request
                         .get(url)
                         .pipe(memoryFs.createWriteStream(new_src));

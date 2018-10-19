@@ -1,18 +1,23 @@
 import postcss from 'postcss';
 import sass from 'node-sass';
 import CleanCSS from 'clean-css';
+import DefaultHashString from 'string-hash';
 import { hashString } from '../utils';
 
 import postcssSelector from '../plugins/postcss-selector';
 import postcssImages from '../plugins/postcss-images';
 import postcssFont from '../plugins/postcss-font';
+import { dev } from '../utils';
+
+//存储全局的样式的hashString，保证唯一性
+let StoreGlobalStyle = [];
 
 //通过node-sass解析并获取style字符串
 export const content = (givenPath) =>
   sass.renderSync({ file: givenPath }).css.toString();
 
 //postcss批量处理
-const handlePostcss = (styles, plugins) => {
+const handlePostcss = (styles, plugins, isGlobal) => {
   return new Promise(async (resolve, reject) => {
     if (styles.length) {
       try {
@@ -24,7 +29,18 @@ const handlePostcss = (styles, plugins) => {
             });
             //压缩css文件
             const output = new CleanCSS({}).minify(css);
-            return output.styles;
+            if (isGlobal && !dev()) {
+              const globalId = DefaultHashString(output.styles);
+              // 筛选出重复的全局样式引用
+              if (StoreGlobalStyle.indexOf(globalId) === -1) {
+                StoreGlobalStyle.push(globalId);
+                return output.styles;
+              } else {
+                return '';
+              }
+            } else {
+              return output.styles;
+            }
           }),
         );
         resolve(style.join(''));
@@ -80,8 +96,8 @@ export const ParseStyle = (plugins, state, config) => {
       //存储class选择器
       global['es-style-class'] = [];
 
-      let globalStyle = await handlePostcss(state.styles.global, plugins);
-      let jsxStyle = await handlePostcss(state.styles.jsx, plugins);
+      let globalStyle = await handlePostcss(state.styles.global, plugins, true);
+      let jsxStyle = await handlePostcss(state.styles.jsx, plugins, false);
 
       let styleId =
         jsxStyle === '' ? 0 : hashString(jsxStyle, global['es-style-class']);

@@ -1,13 +1,39 @@
 const webpack = require('webpack');
+const path = require('path');
 const hashString = require('string-hash');
 const md5 = require('md5');
 const pluginName = 'EsStyleWebpackPlugin';
 const CleanCSS = require('clean-css');
+const { dev } = require('../utils');
 const { Template } = webpack;
 
 const cleanStyle = (css) => {
   const output = new CleanCSS({}).minify(css);
   return output.styles;
+};
+
+var quickSort = function(arr) {
+  if (arr.length <= 1) {
+    return arr;
+  }
+
+  var pivotIndex = Math.floor(arr.length / 2);
+
+  var pivot = arr.splice(pivotIndex, 1)[0];
+
+  var left = [];
+
+  var right = [];
+
+  for (var i = 0; i < arr.length; i++) {
+    if (parseInt(arr[i]) < parseInt(pivot)) {
+      left.push(arr[i]);
+    } else {
+      right.push(arr[i]);
+    }
+  }
+
+  return quickSort(left).concat([pivot], quickSort(right));
 };
 
 const license = `/*!\n* es-style\n* https://github.com/topthinking/es-style\n*\n* Released under MIT license. Copyright (c) 2018 GitHub Inc.\n*/`;
@@ -27,12 +53,8 @@ class Plugin {
     // 记录公共的chunk css module
     let CommonChunkCssModule = [];
     // 记录公共样式的hash名字，通过hash名字排序拼接style
-    let CommonFileHashName = [];
-
-    if (
-      process.env.NODE_ENV === 'development' ||
-      typeof process.env.NODE_ENV === 'undefined'
-    ) {
+    let CommonFileHashName = {};
+    if (dev()) {
       return;
     }
 
@@ -42,7 +64,7 @@ class Plugin {
         CommonStyle = '';
         StyleFileName = '';
         CommonChunkCssModule = [];
-        CommonFileHashName = [];
+        CommonFileHashName = {};
         const moduleEntry = []; //每个chunk的入口文件，都是依赖的第一个文件
         chunks.map((item) => {
           const modules = [];
@@ -73,17 +95,14 @@ class Plugin {
             item.modules.map((_module, index) => {
               // 表示非入口的模块
               if (moduleEntry.indexOf(_module) === -1) {
-                if (
-                  CommonModule[_module] &&
-                  CommonChunkCssModule.indexOf(_module) === -1
-                ) {
-                  // 说明已经存在该module了,需要将该module存入公共的css module
-                  // 剔除当前模块没有import样式
-                  if (global['es-style'] && global['es-style']['es'][_module]) {
+                if (CommonModule[_module]) {
+                  if (CommonChunkCssModule.indexOf(_module) === -1) {
+                    // 说明已经存在该module了,需要将该module存入公共的css module
+                    // 剔除当前模块没有import样式
                     CommonChunkCssModule.push(_module);
                   }
                 } else {
-                  CommonModule[_module] = 1;
+                  CommonModule[_module] = debugId;
                 }
                 _modules.push(_module);
               }
@@ -93,81 +112,155 @@ class Plugin {
         }
 
         //去除MyChunks里面 公共的module
+        //同时提取每个chunk的样式
         for (let debugId in MyChunks) {
           const _modules = [];
           const item = MyChunks[debugId];
-          let css = '';
-          if (
-            global['es-style'] &&
-            global['es-style']['es'][item.entry] &&
-            global['es-style']['es'][item.entry] !== ''
-          ) {
-            css += global['es-style']['es'][item.entry];
+          let css = {};
+          let cssKeys = [];
+          if (global['es-style'] && global['es-style']['es'][item.entry]) {
+            if (item.name === 'main') {
+              // 把main入口的资源也提取到公共模块中
+              CommonFileHashName[0] = global['es-style']['es'][item.entry];
+            } else {
+              const entryId = hashString(item.entry);
+              cssKeys.push(entryId);
+              css[entryId] = global['es-style']['es'][item.entry];
+            }
           }
           if (item.modules.length) {
             item.modules.map((_module) => {
               // 剔除提取的公共模块
               if (CommonChunkCssModule.indexOf(_module) === -1) {
                 // 剔除当前模块没有import样式
-                if (
-                  global['es-style'] &&
-                  global['es-style']['es'][_module] &&
-                  global['es-style']['es'][_module] !== ''
-                ) {
-                  if (item.name === 'main') {
-                    // 获取当前模块的属于main的公共file
-                    CommonFileHashName.push(
-                      global['es-style']['hash'][_module],
-                    );
-                  }
-                  css += global['es-style']['es'][_module];
+                if (global['es-style'] && global['es-style']['es'][_module]) {
+                  /**
+                   * 当前模块不在公共模块内
+                   * 但是当前模块引用的样式被公共模块也引用了
+                   * 后续该样式会被公共模块提取到全局样式库中
+                   * 所以，该模块的样式不加入该模块中
+                   */
+                  const hashId =
+                    global['es-style']['relation']['es']['file'][_module];
+                  const relations =
+                    global['es-style']['relation']['es']['hash'][hashId];
                   _modules.push(_module);
+
+                  if (item.name === 'main') {
+                    // 把main入口的资源也提取到公共模块中
+                    let keys = [];
+                    relations.map((item) => {
+                      keys.push(hashString(item));
+                    });
+                    keys = Array.from(new Set(quickSort(keys)));
+
+                    if (!CommonFileHashName[keys[0]]) {
+                      CommonFileHashName[keys[0]] =
+                        global['es-style']['es'][_module];
+                    }
+                  } else {
+                    let isGlobal = false;
+                    relations.map((item) => {
+                      if (
+                        CommonChunkCssModule.indexOf(item) !== -1 &&
+                        item !== _module
+                      ) {
+                        isGlobal = true;
+                      }
+                    });
+                    if (!isGlobal) {
+                      // 如果不是全局，则吧样式放到当前的chunk下
+                      const _moduleId = hashString(_module);
+                      cssKeys.push(_moduleId);
+                      css[_moduleId] = global['es-style']['es'][_module];
+                    }
+                  }
                 }
               }
             });
           }
+
+          // 排序cssKeys计算叠加
+          cssKeys = Array.from(new Set(quickSort(cssKeys)));
+          let ChunkStyle = '';
+
+          cssKeys.map((key) => {
+            ChunkStyle += css[key];
+          });
+
           MyChunks[debugId]._modules = item.modules;
           MyChunks[debugId].modules = _modules;
-          MyChunks[debugId].style = css;
+          MyChunks[debugId].style = ChunkStyle;
         }
 
-        // 生成公共的样式资源
+        // es
+        CommonChunkCssModule.map((item) => {
+          const hashId = global['es-style']['relation']['es']['file'][item];
+          // hashId存在，同时不等于5381 5381=hashString('')
+          if (hashId && hashId !== 5381) {
+            const relations =
+              global['es-style']['relation']['es']['hash'][hashId];
+
+            let keys = [],
+              _style = '';
+            relations.map((item) => {
+              keys.push(hashString(item));
+              if (global['es-style']['es'][item]) {
+                _style = global['es-style']['es'][item];
+              }
+            });
+            keys = Array.from(new Set(quickSort(keys)));
+
+            if (!CommonFileHashName[keys[0]] && _style) {
+              CommonFileHashName[keys[0]] = _style;
+            }
+          }
+        });
+
+        // style
+        let _CommonFileHashName = {};
         if (global['es-style'] && global['es-style']['style']) {
           // 获取全局的公共file名称
-          const commonStyleKeys = Object.keys(global['es-style']['style']);
-          commonStyleKeys.map((item) => {
-            CommonFileHashName.push(global['es-style']['hash'][item]);
+          const commonStyleReference = Object.keys(global['es-style']['style']);
+          commonStyleReference.map((item) => {
+            const hashId =
+              global['es-style']['relation']['style']['file'][item];
+            const relations =
+              global['es-style']['relation']['style']['hash'][hashId];
+            let keys = [],
+              _style = '';
+            relations.map((item) => {
+              keys.push(hashString(item));
+              if (global['es-style']['style'][item]) {
+                _style = global['es-style']['style'][item];
+              }
+            });
+            keys = Array.from(new Set(quickSort(keys)));
+            if (!_CommonFileHashName[keys[0]] && _style) {
+              _CommonFileHashName[keys[0]] = _style;
+            }
           });
         }
 
-        CommonChunkCssModule.map((item) => {
-          if (global['es-style'] && global['es-style']['es'][item]) {
-            CommonFileHashName.push(global['es-style']['hash'][item]);
-          }
+        /**
+         * 收集公共样式
+         */
+        // 提取全局的样式
+        CommonStyle = '';
+        const _CommonFileHashNameKeys = Array.from(
+          new Set(quickSort(Object.keys(_CommonFileHashName))),
+        );
+        _CommonFileHashNameKeys.map((item) => {
+          CommonStyle += _CommonFileHashName[item];
         });
 
-        // 解析公共的chunkfile
-        // 将hashName进行排序
-        CommonFileHashName.sort((x, y) => x > y);
-        // 将对象的键值对翻转
-        let _hash = {};
-        Object.keys(global['es-style']['hash']).map((item) => {
-          _hash[global['es-style']['hash'][item]] = item;
+        // 复用两个不同chunk的css-module需要提取
+        const CommonFileHashNameKeys = Array.from(
+          new Set(quickSort(Object.keys(CommonFileHashName))),
+        );
+        CommonFileHashNameKeys.map((item) => {
+          CommonStyle += CommonFileHashName[item];
         });
-
-        console.log(CommonFileHashName);
-        // 收集所有的公共样式
-        CommonFileHashName.map((item) => {
-          const file = _hash[item];
-          if (global['es-style']['style'][file]) {
-            CommonStyle += global['es-style']['style'][file];
-          }
-
-          if (global['es-style']['es'][file]) {
-            CommonStyle += global['es-style']['es'][file];
-          }
-        });
-        console.log(md5(CommonStyle));
       });
 
       // 添加chunkId
@@ -283,101 +376,6 @@ class Plugin {
         },
       );
 
-      mainTemplate.hooks.startup.tap(pluginName, (source, chunk, hash) => {
-        let linkSource = '',
-          moreEntry = false;
-
-        const chunks = Object.keys(MyChunks);
-        const mainStyle = [];
-
-        if (chunks.length === 0) {
-          return source;
-        }
-
-        if (chunks.length === 1 && chunks[0] === chunk.debugId) {
-          // 如果只有一个chunk，那么将与common合并
-          CommonStyle += MyChunks[chunks[0]].style;
-        } else {
-          let entry = 0,
-            style = '';
-          // 再判断当前是否是多入口，如果是多入口，则分开，否则还是算一个
-          for (let debugId in MyChunks) {
-            if (
-              typeof MyChunks[debugId].name === 'string' &&
-              debugId === chunk.debugId
-            ) {
-              style = MyChunks[debugId].style;
-              entry++;
-            }
-          }
-          // 单入口，也将入口文件里面的样式放到common里面去
-          if (entry === 1) {
-            CommonStyle += style;
-          } else if (entry > 1) {
-            moreEntry = true;
-          }
-        }
-
-        if (CommonStyle !== '') {
-          CommonFile = md5(cleanStyle(CommonStyle)).substr(0, 5) + '.css';
-          mainStyle.push(CommonFile);
-        }
-
-        if (moreEntry && MyChunks[chunk.debugId].style !== '') {
-          MyChunks[chunk.debugId].hashName =
-            md5(MyChunks[chunk.debugId].style).substr(0, 5) + '.css';
-          mainStyle.push(MyChunks[chunk.debugId].hashName);
-        }
-
-        // 取出当前的主要入口chunk样式
-        if (mainStyle.length) {
-          linkSource = Template.asString([
-            `function loadLink(name) {`,
-            Template.indent([
-              `return Promise.all(name.map(function(item){`,
-              Template.indent([
-                `return new Promise(function(resolve,reject){`,
-                Template.indent([
-                  `var fullhref = ${
-                    mainTemplate.requireFn
-                  }.p + 'styles/' + item;`,
-                  'var linkTag = document.createElement("link");',
-                  'linkTag.rel = "stylesheet";',
-                  'linkTag.type = "text/css";',
-                  'linkTag.onload = resolve;',
-                  'linkTag.onerror = function(event) {',
-                  Template.indent([
-                    'var request = event && event.target && event.target.src || fullhref;',
-                    'var err = new Error("Loading CSS chunk "+ item +" failed.\\n(" + request + ")");',
-                    'reject(err);',
-                  ]),
-                  '};',
-                  'linkTag.href = fullhref;',
-                  'var head = document.getElementsByTagName("head")[0];',
-                  'head.appendChild(linkTag);',
-                ]),
-                '});',
-              ]),
-              '}));',
-            ]),
-            '};',
-            `var loadStyle = ${JSON.stringify(mainStyle)};`,
-            `loadLink(loadStyle).then(function(){resolve()}).catch(function(err){reject(err)});`,
-          ]);
-        } else {
-          linkSource = Template.asString(['resolve();']);
-        }
-        return Template.asString([
-          'return new Promise(function(resolve,reject){',
-          Template.indent([linkSource]),
-          '}).then(function(){',
-          Template.indent([source]),
-          '}).catch(function(err){',
-          Template.indent(['console.error(err)']),
-          '})',
-        ]);
-      });
-
       // 整理hash后的文件依赖
       compilation.hooks.additionalChunkAssets.tap(pluginName, (chunks) => {
         chunks.map((item) => {
@@ -418,6 +416,7 @@ class Plugin {
         } else {
           if (style !== '' && bundleLength > 1) {
             if (this.combine) {
+              // 需要合并所有样式，就把当前chunk的样式加入到CommonStyle里面
               CommonStyle += style;
             } else {
               if (typeof item.name !== 'string') {
@@ -441,34 +440,19 @@ class Plugin {
         }
       }
 
-      if (this.combine) {
-        if (CommonStyle !== '') {
-          const _style = license + cleanStyle(CommonStyle);
-          const _file = md5(_style).substr(0, 5) + '.css';
-          map[0] = _file;
-          compilation.assets['styles/' + _file] = {
-            source() {
-              return _style;
-            },
-            size() {
-              return _style.length;
-            },
-          };
-        }
-      } else {
-        // 生成公共样式文件
-        if (CommonFile !== '') {
-          map[0] = CommonFile;
-          const _style = license + cleanStyle(CommonStyle);
-          compilation.assets['styles/' + CommonFile] = {
-            source() {
-              return _style;
-            },
-            size() {
-              return _style.length;
-            },
-          };
-        }
+      // 生成公共样式文件
+      if (CommonStyle !== '') {
+        const _style = license + cleanStyle(CommonStyle);
+        const _file = md5(_style).substr(0, 5) + '.css';
+        map[0] = _file;
+        compilation.assets['styles/' + _file] = {
+          source() {
+            return _style;
+          },
+          size() {
+            return _style.length;
+          },
+        };
       }
 
       if (StyleFileName !== '') {
