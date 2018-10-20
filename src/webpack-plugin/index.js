@@ -65,6 +65,7 @@ class Plugin {
         StyleFileName = '';
         CommonChunkCssModule = [];
         CommonFileHashName = {};
+        const mainChunkModules = [];
         const moduleEntry = []; //每个chunk的入口文件，都是依赖的第一个文件
         chunks.map((item) => {
           const modules = [];
@@ -176,6 +177,13 @@ class Plugin {
                     }
                   }
                 }
+                if (
+                  item.name === 'main' &&
+                  global['es-style'] &&
+                  global['es-style']['style'][_module]
+                ) {
+                  mainChunkModules.push(_module);
+                }
               }
             });
           }
@@ -228,16 +236,22 @@ class Plugin {
             const relations =
               global['es-style']['relation']['style']['hash'][hashId];
             let keys = [],
+              _module = '',
               _style = '';
             relations.map((item) => {
               keys.push(hashString(item));
               if (global['es-style']['style'][item]) {
+                _module = item;
                 _style = global['es-style']['style'][item];
               }
             });
-            keys = Array.from(new Set(quickSort(keys)));
-            if (!_CommonFileHashName[keys[0]] && _style) {
-              _CommonFileHashName[keys[0]] = _style;
+            if (mainChunkModules.indexOf(_module) !== -1 && _style) {
+              _CommonFileHashName[mainChunkModules.indexOf(_module)] = _style;
+            } else {
+              keys = Array.from(new Set(quickSort(keys)));
+              if (!_CommonFileHashName[keys[0]] && _style) {
+                _CommonFileHashName[keys[0]] = _style;
+              }
             }
           });
         }
