@@ -39,12 +39,16 @@ export default postcss.plugin(
                * url(./a.jpg)
                */
               // 匹配出内容区域
-              const content = item.replace(/^url\(["|']?(.*)["|']?\)/, '$1');
-              let url = content;
+              let content = item.replace(
+                /^url\(["|']?(.*)(jpg|png|gif|jpeg|svg)(\?.*[^"|'])?["|']?\)/,
+                '$1$2\\$3',
+              );
+              content = content.split('\\');
+              let url = content[0];
               // 判断内容不能已http:、https:、//开头
-              if (!/^http(s)?:|^\/\//.test(content)) {
+              if (!/^http(s)?:|^\/\//.test(url)) {
                 // 这里匹配到的内容需要解析
-                if (!/^[\.|\/]/.test(content)) {
+                if (!/^[\.|\/]/.test(url)) {
                   // 不以点开头，相对路径
                   // 不以斜杠开头，绝对路径
                   // 那么就是这种写法 url(a.jpg) 默认相对路径，需加上
@@ -52,7 +56,7 @@ export default postcss.plugin(
                 }
                 try {
                   const itemValue = item.replace(
-                    content,
+                    content.join(''),
                     parseImage({
                       url,
                       reference: root.source.input.file,
