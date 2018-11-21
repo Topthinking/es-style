@@ -25,21 +25,34 @@ export default postcss.plugin(
 
         rule.walkDecls((decl) => {
           //查询css的value是否存在url(<地址>)
-          const _match = decl.value.match(/url\(['|"|.][^)]*\)/g);
+          const _match = decl.value.match(
+            /url\(['|"]?(.*\.(jpg|png|gif|jpeg|svg)(\?.*)?)['|"]?\)/g,
+          );
           if (_match) {
             //匹配到数组形式
             _match.map((item) => {
-              const _item = item.match(/url\((['|"|.])([^)]*)\)/);
-              if (_item) {
-                let url = _item[2];
-                if (_item[1] === '.') {
-                  url = '.' + url;
-                } else {
-                  url = url.substr(0, url.length - 1);
+              /**
+               * 有下面几种形式
+               * url(a.jpg)
+               * url("a.jpg")
+               * url('a.jpg')
+               * url(./a.jpg)
+               */
+              // 匹配出内容区域
+              const content = item.replace(/^url\(["|']?(.*)["|']?\)/, '$1');
+              let url = content;
+              // 判断内容不能已http:、https:、//开头
+              if (!/^http(s)?:|^\/\//.test(content)) {
+                // 这里匹配到的内容需要解析
+                if (!/^[\.|\/]/.test(content)) {
+                  // 不以点开头，相对路径
+                  // 不以斜杠开头，绝对路径
+                  // 那么就是这种写法 url(a.jpg) 默认相对路径，需加上
+                  url = './' + url;
                 }
                 try {
                   const itemValue = item.replace(
-                    url,
+                    content,
                     parseImage({
                       url,
                       reference: root.source.input.file,

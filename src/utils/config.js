@@ -5,7 +5,7 @@ const cache = new Map();
 
 const defaultConfig = {
   plugins: [],
-  imageLimit: null,
+  limit: null,
 };
 
 export default ({ dir = process.cwd(), refresh = false } = {}) => {
