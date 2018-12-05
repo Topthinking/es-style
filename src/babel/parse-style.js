@@ -32,11 +32,14 @@ if (!dev()) {
   const hour = time.getHours();
   const min = time.getMinutes();
   const sec = time.getSeconds();
+
+  const add0 = (v) => (v < 10 ? '0' + v : v);
+
   fs.appendFileSync(
     configLogFile,
-    `编译时间:${year}-${month < 10 ? '0' + month : month}-${
-      day < 10 ? '0' + day : day
-    } ${hour}:${min}:${sec} \n`,
+    `编译时间:${year}-${add0(month)}-${add0(day)} ${add0(hour)}:${add0(
+      min,
+    )}:${add0(sec)} \n`,
   );
 }
 
