@@ -1,9 +1,11 @@
 import postcss from 'postcss';
 import sass from 'node-sass';
+import path from 'path';
 import CleanCSS from 'clean-css';
+import fs from 'fs-extra';
 import DefaultHashString from 'string-hash';
-import { hashString } from '../utils';
 
+import { hashString } from '../utils';
 import postcssSelector from '../plugins/postcss-selector';
 import postcssImages from '../plugins/postcss-images';
 import postcssFont from '../plugins/postcss-font';
@@ -11,6 +13,32 @@ import { dev } from '../utils';
 
 //存储全局的样式的hashString，保证唯一性
 let StoreGlobalStyle = [];
+
+const configLogFile = path.join(process.cwd(), '.es.json.log');
+const configFile = path.join(process.cwd(), '.es.json');
+let currentTime = 0;
+
+if (!dev()) {
+  if (fs.existsSync(configFile)) {
+    // 记录当前文件修改时间
+    const stat = fs.statSync(configFile);
+    currentTime = new Date(stat.mtime).getTime();
+  }
+
+  const time = new Date();
+  const year = time.getFullYear();
+  const month = time.getMonth() + 1;
+  const day = time.getDate();
+  const hour = time.getHours();
+  const min = time.getMinutes();
+  const sec = time.getSeconds();
+  fs.appendFileSync(
+    configLogFile,
+    `编译时间:${year}-${month < 10 ? '0' + month : month}-${
+      day < 10 ? '0' + day : day
+    } ${hour}:${min}:${sec} \n`,
+  );
+}
 
 //通过node-sass解析并获取style字符串
 export const content = (givenPath) =>
@@ -62,6 +90,10 @@ export const ParseStyle = (plugins, state, config) => {
   let publicEntry = (state && state.opts && state.opts.publicEntry) || './dist';
   const write = (state && state.opts && state.opts.write) || false;
 
+  if (!write) {
+    // 不可写，即编译服务端代码，记录sock
+  }
+
   if (typeof imageOptions === 'undefined') {
     imageOptions = {};
   }
@@ -96,13 +128,38 @@ export const ParseStyle = (plugins, state, config) => {
       //存储class选择器
       global['es-style-class'] = [];
 
+      let _jsxStyle = '';
+      state.styles.jsx.map((item) => {
+        _jsxStyle += item.css;
+      });
+
       let globalStyle = await handlePostcss(state.styles.global, plugins, true);
       let jsxStyle = await handlePostcss(state.styles.jsx, plugins, false);
+      let styleId = 0;
 
-      let styleId =
-        jsxStyle === '' ? 0 : hashString(jsxStyle, global['es-style-class']);
+      if (jsxStyle) {
+        const HashJsx = DefaultHashString(_jsxStyle);
+        styleId = hashString(HashJsx, global['es-style-class']);
+        if (!dev()) {
+          let fileChange = false;
+          if (fs.existsSync(configFile)) {
+            // 记录当前文件修改时间
+            const stat = fs.statSync(configFile);
+            const _mtime = new Date(stat.mtime).getTime();
+            fileChange = _mtime !== currentTime;
+            currentTime = _mtime;
+          }
 
-      if (styleId !== 0) {
+          fs.appendFileSync(
+            configLogFile,
+            `${
+              fileChange ? '⚠️ ' : ''
+            }${HashJsx} ---- ${styleId}\n${reference}\n\n`,
+          );
+        }
+      }
+
+      if (styleId) {
         //拼接css-modules
         const { css } = await postcss([
           postcssSelector({ styleId, styleType: state.styleType }),

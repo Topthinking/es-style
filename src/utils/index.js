@@ -124,11 +124,11 @@ export const shouldBeParseImage = (path) => {
 
 const configFile = path.join(process.cwd(), '.es.json');
 
-export const hashString = (str, classSelector = []) => {
+export const hashString = (hashStr, classSelector = [], reference) => {
   if (/production|test/.test(process.env.NODE_ENV || '')) {
-    str = _hashString(str);
     let config = {};
 
+    // 读取已经格式化的文件
     if (fs.existsSync(configFile)) {
       config = JSON.parse(fs.readFileSync(configFile, 'utf-8'));
     }
@@ -144,9 +144,9 @@ export const hashString = (str, classSelector = []) => {
       }
     }
 
-    if (_config[str]) {
-      if (classSelector.indexOf(_config[str]) === -1) {
-        return _config[str];
+    if (_config[hashStr]) {
+      if (classSelector.indexOf(_config[hashStr]) === -1) {
+        return _config[hashStr];
       }
     }
 
@@ -161,14 +161,14 @@ export const hashString = (str, classSelector = []) => {
     ) {
       tmp = randomValue();
     }
-    _config[str] = tmp;
+    _config[hashStr] = tmp;
     uniqueIds.push(tmp);
 
     fs.writeFileSync(configFile, JSON.stringify(_config));
 
     return tmp;
   } else {
-    return 'e-' + String(_hashString(str));
+    return 'e-' + hashStr;
   }
 };
 
