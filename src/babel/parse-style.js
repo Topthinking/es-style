@@ -14,35 +14,6 @@ import { dev } from '../utils';
 //存储全局的样式的hashString，保证唯一性
 let StoreGlobalStyle = [];
 
-const configLogFile = path.join(process.cwd(), '.es.json.log');
-const configFile = path.join(process.cwd(), '.es.json');
-let currentTime = 0;
-
-if (!dev()) {
-  if (fs.existsSync(configFile)) {
-    // 记录当前文件修改时间
-    const stat = fs.statSync(configFile);
-    currentTime = new Date(stat.mtime).getTime();
-  }
-
-  const time = new Date();
-  const year = time.getFullYear();
-  const month = time.getMonth() + 1;
-  const day = time.getDate();
-  const hour = time.getHours();
-  const min = time.getMinutes();
-  const sec = time.getSeconds();
-
-  const add0 = (v) => (v < 10 ? '0' + v : v);
-
-  fs.appendFileSync(
-    configLogFile,
-    `编译时间:${year}-${add0(month)}-${add0(day)} ${add0(hour)}:${add0(
-      min,
-    )}:${add0(sec)} \n`,
-  );
-}
-
 //通过node-sass解析并获取style字符串
 export const content = (givenPath) =>
   sass.renderSync({ file: givenPath }).css.toString();
@@ -143,23 +114,6 @@ export const ParseStyle = (plugins, state, config) => {
       if (jsxStyle) {
         const HashJsx = DefaultHashString(_jsxStyle);
         styleId = hashString(HashJsx, global['es-style-class']);
-        if (!dev()) {
-          let fileChange = false;
-          if (fs.existsSync(configFile)) {
-            // 记录当前文件修改时间
-            const stat = fs.statSync(configFile);
-            const _mtime = new Date(stat.mtime).getTime();
-            fileChange = _mtime !== currentTime;
-            currentTime = _mtime;
-          }
-
-          fs.appendFileSync(
-            configLogFile,
-            `${
-              fileChange ? '⚠️ ' : ''
-            }${HashJsx} ---- ${styleId}\n${reference}\n\n`,
-          );
-        }
       }
 
       if (styleId) {
