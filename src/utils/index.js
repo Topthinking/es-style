@@ -138,7 +138,7 @@ export const hashString = (hashStr, classSelector = [], reference) => {
     const _config = {};
 
     for (let key in config) {
-      if (uniqueValue.indexOf(config[key]) === -1) {
+      if (uniqueValue.indexOf(config[key]) === -1 && /^_/.test(config[key])) {
         uniqueValue.push(config[key]);
         _config[key] = config[key];
       }
@@ -158,7 +158,7 @@ export const hashString = (hashStr, classSelector = [], reference) => {
       uniqueValue.indexOf(tmp) !== -1 || // 之前已经生成的随机数
       classSelector.indexOf(tmp) !== -1 // 和类名一致的随机数
     ) {
-      tmp = randomValue();
+      tmp = '_' + randomValue();
     }
     _config[hashStr] = tmp;
     uniqueIds.push(tmp);
