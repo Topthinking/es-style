@@ -150,11 +150,10 @@ export const hashString = (hashStr, classSelector = [], reference) => {
       }
     }
 
-    let tmp = randomValue();
+    let tmp = '_' + randomValue(); // 添加 _ 增强唯一性
 
     // 如果随机值已经存在，或者随机值以数字开头，都需要重新随机
     while (
-      /^[\d]/.test(tmp) || // 直接数字开头
       uniqueIds.indexOf(tmp) !== -1 || // 已经存在的随机数
       uniqueValue.indexOf(tmp) !== -1 || // 之前已经生成的随机数
       classSelector.indexOf(tmp) !== -1 // 和类名一致的随机数
