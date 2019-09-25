@@ -6,3 +6,4 @@ test.sh
 package-lock.json
 .vscode
 .es.json
+yarn.lock

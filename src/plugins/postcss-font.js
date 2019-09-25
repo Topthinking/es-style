@@ -34,33 +34,34 @@ export default postcss.plugin(
                     .shift()
                     .split('?')
                     .shift();
-
-                  let new_src = '',
-                    src = '',
-                    filename = url.split('/').pop(),
-                    ext = url
-                      .split('/')
-                      .pop()
-                      .split('.')
-                      .pop();
-
-                  //新的文件名称
-                  filename =
-                    filename.split('.').shift() +
-                    '_' +
-                    md5(item).substr(0, 7) +
-                    '.' +
-                    ext;
-
-                  let fontDir = join(publicEntry, fontOptions.path);
-                  let realPath = join(fontDir, filename);
-
-                  if (!fs.existsSync(fontDir)) {
-                    fs.mkdirpSync(fontDir);
-                  }
-
-                  //获取真实的本地资源地址
+                  // 对本地相对路径引用的资源做处理
                   if (/^\./.test(url)) {
+                    let new_src = '',
+                      src = '',
+                      filename = url.split('/').pop(),
+                      ext = url
+                        .split('/')
+                        .pop()
+                        .split('.')
+                        .pop();
+
+                    //新的文件名称
+                    filename =
+                      filename.split('.').shift() +
+                      '_' +
+                      md5(item).substr(0, 7) +
+                      '.' +
+                      ext;
+
+                    let fontDir = join(publicEntry, fontOptions.path);
+                    let realPath = join(fontDir, filename);
+
+                    if (!fs.existsSync(fontDir)) {
+                      fs.mkdirpSync(fontDir);
+                    }
+
+                    //获取真实的本地资源地址
+
                     //本地文件
                     const mod = requireResolve(url, resolve(reference));
                     if (!mod || !mod.src) {
@@ -75,22 +76,22 @@ export default postcss.plugin(
                       //解析到的全路径
                       src = mod.src;
                     }
-                  }
 
-                  if (dev()) {
-                    // 开发模式 memory 内存文件类型
-                    const new_dir = join('/static', fontOptions.path);
-                    if (!memoryFs.existsSync(new_dir)) {
-                      memoryFs.mkdirpSync(new_dir);
+                    if (dev()) {
+                      // 开发模式 memory 内存文件类型
+                      const new_dir = join('/static', fontOptions.path);
+                      if (!memoryFs.existsSync(new_dir)) {
+                        memoryFs.mkdirpSync(new_dir);
+                      }
+                      new_src = join(new_dir, filename);
+                    } else {
+                      // http://cdn.com/dist/fonts/font-name.svg
+                      new_src = [publicPath, fontOptions.path, filename].join(
+                        '',
+                      );
                     }
-                    new_src = join(new_dir, filename);
-                  } else {
-                    // http://cdn.com/dist/fonts/font-name.svg
-                    new_src = [publicPath, fontOptions.path, filename].join('');
-                  }
 
-                  //写文件
-                  if (/^\./.test(url)) {
+                    //写文件
                     //本地文件转移
                     if (dev()) {
                       memoryFs.writeFileSync(new_src, fs.readFileSync(src));
@@ -99,20 +100,9 @@ export default postcss.plugin(
                         fs.copySync(src, realPath);
                       }
                     }
-                  } else {
-                    //远程下载文件
-                    if (dev()) {
-                      request
-                        .get(url)
-                        .pipe(memoryFs.createWriteStream(new_src));
-                    } else {
-                      if (write) {
-                        request.get(url).pipe(fs.createWriteStream(realPath));
-                      }
-                    }
-                  }
 
-                  decl.value = decl.value.replace(url, new_src);
+                    decl.value = decl.value.replace(url, new_src);
+                  }
                 });
               }
             }
